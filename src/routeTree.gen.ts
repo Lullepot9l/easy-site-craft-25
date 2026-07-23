@@ -30,6 +30,7 @@ import { Route as AuthenticatedNexusRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedMarketplaceRouteImport } from './routes/_authenticated/marketplace'
 import { Route as AuthenticatedImagesRouteImport } from './routes/_authenticated/images'
 import { Route as AuthenticatedHubRouteImport } from './routes/_authenticated/hub'
+import { Route as AuthenticatedFriendsRouteImport } from './routes/_authenticated/friends'
 import { Route as AuthenticatedExportRouteImport } from './routes/_authenticated/export'
 import { Route as AuthenticatedDiscordRouteImport } from './routes/_authenticated/discord'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
@@ -145,6 +146,11 @@ const AuthenticatedHubRoute = AuthenticatedHubRouteImport.update({
   path: '/hub',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedFriendsRoute = AuthenticatedFriendsRouteImport.update({
+  id: '/friends',
+  path: '/friends',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedExportRoute = AuthenticatedExportRouteImport.update({
   id: '/export',
   path: '/export',
@@ -196,6 +202,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/discord': typeof AuthenticatedDiscordRoute
   '/export': typeof AuthenticatedExportRoute
+  '/friends': typeof AuthenticatedFriendsRoute
   '/hub': typeof AuthenticatedHubRoute
   '/images': typeof AuthenticatedImagesRoute
   '/marketplace': typeof AuthenticatedMarketplaceRoute
@@ -226,6 +233,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/discord': typeof AuthenticatedDiscordRoute
   '/export': typeof AuthenticatedExportRoute
+  '/friends': typeof AuthenticatedFriendsRoute
   '/hub': typeof AuthenticatedHubRoute
   '/images': typeof AuthenticatedImagesRoute
   '/marketplace': typeof AuthenticatedMarketplaceRoute
@@ -258,6 +266,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/discord': typeof AuthenticatedDiscordRoute
   '/_authenticated/export': typeof AuthenticatedExportRoute
+  '/_authenticated/friends': typeof AuthenticatedFriendsRoute
   '/_authenticated/hub': typeof AuthenticatedHubRoute
   '/_authenticated/images': typeof AuthenticatedImagesRoute
   '/_authenticated/marketplace': typeof AuthenticatedMarketplaceRoute
@@ -290,6 +299,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/discord'
     | '/export'
+    | '/friends'
     | '/hub'
     | '/images'
     | '/marketplace'
@@ -320,6 +330,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/discord'
     | '/export'
+    | '/friends'
     | '/hub'
     | '/images'
     | '/marketplace'
@@ -351,6 +362,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/discord'
     | '/_authenticated/export'
+    | '/_authenticated/friends'
     | '/_authenticated/hub'
     | '/_authenticated/images'
     | '/_authenticated/marketplace'
@@ -533,6 +545,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedHubRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/friends': {
+      id: '/_authenticated/friends'
+      path: '/friends'
+      fullPath: '/friends'
+      preLoaderRoute: typeof AuthenticatedFriendsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/export': {
       id: '/_authenticated/export'
       path: '/export'
@@ -597,6 +616,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDiscordRoute: typeof AuthenticatedDiscordRoute
   AuthenticatedExportRoute: typeof AuthenticatedExportRoute
+  AuthenticatedFriendsRoute: typeof AuthenticatedFriendsRoute
   AuthenticatedHubRoute: typeof AuthenticatedHubRoute
   AuthenticatedImagesRoute: typeof AuthenticatedImagesRoute
   AuthenticatedMarketplaceRoute: typeof AuthenticatedMarketplaceRoute
@@ -620,6 +640,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDiscordRoute: AuthenticatedDiscordRoute,
   AuthenticatedExportRoute: AuthenticatedExportRoute,
+  AuthenticatedFriendsRoute: AuthenticatedFriendsRoute,
   AuthenticatedHubRoute: AuthenticatedHubRoute,
   AuthenticatedImagesRoute: AuthenticatedImagesRoute,
   AuthenticatedMarketplaceRoute: AuthenticatedMarketplaceRoute,
