@@ -2,7 +2,7 @@ import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import {
   LayoutDashboard, MessageSquare, Image as ImgIcon, Users, ShoppingBag,
   Code2, Gamepad2, Crown, FileDown, LogOut, Sparkles, Globe, Terminal, Zap,
-  Flame, Infinity as InfinityIcon, ChevronDown,
+  Flame, Infinity as InfinityIcon, ChevronDown, Heart,
 } from "lucide-react";
 import { useState, type ReactNode, type ComponentType } from "react";
 import { toast } from "sonner";
@@ -35,6 +35,7 @@ const DEV_NAV_KEYS = [
 
 const OWNER_TOOLS: NavItem[] = [
   { to: "/owner", icon: Crown, label: "Owner" },
+  { to: "/friends", icon: Heart, label: "Amigos / DMs" },
   { to: "/discord", icon: MessageSquare, label: "Discord Bot" },
   { to: "/nexus", icon: Terminal, label: "Nexus" },
   { to: "/hub", icon: Zap, label: "Hub" },
@@ -72,7 +73,9 @@ export function AppShell({ children }: { children: ReactNode }) {
         <nav className="space-y-4 flex-1 overflow-y-auto pr-1">
           <NavGroup label="Principal" path={path} items={MAIN_NAV_KEYS.map(i => ({ to: i.to, icon: i.icon, label: t(i.key) }))} />
           <NavGroup label="Comunidade" path={path} items={HUB_NAV_KEYS.map(i => ({ to: i.to, icon: i.icon, label: t(i.key) }))} />
-          <NavGroup label="Dev" path={path} items={DEV_NAV_KEYS.map(i => ({ to: i.to, icon: i.icon, label: t(i.key) }))} />
+          {isOwner && (
+            <NavGroup label="Dev" path={path} items={DEV_NAV_KEYS.map(i => ({ to: i.to, icon: i.icon, label: t(i.key) }))} />
+          )}
 
           {isOwner && (
             <>

@@ -14,7 +14,10 @@ export function AvatarBubble({ url, name, size = 40, effect, className = "" }: P
   const initial = (name?.trim()?.[0] ?? "?").toUpperCase();
   const style = { width: size, height: size };
   return (
-    <span className={`${fx} shrink-0 inline-block ${className}`}>
+    <span
+      className={`${fx} shrink-0 inline-block align-middle ${className}`}
+      style={{ width: size, height: size, lineHeight: 0 }}
+    >
       {url ? (
         <img
           src={url}
