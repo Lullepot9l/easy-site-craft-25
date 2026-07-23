@@ -635,6 +635,33 @@ export type Database = {
           },
         ]
       }
+      owner_chat_themes: {
+        Row: {
+          accent_color: string | null
+          bg_color: string | null
+          bg_image_url: string | null
+          bubble_color: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          accent_color?: string | null
+          bg_color?: string | null
+          bg_image_url?: string | null
+          bubble_color?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          accent_color?: string | null
+          bg_color?: string | null
+          bg_image_url?: string | null
+          bubble_color?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       owner_discord_config: {
         Row: {
           activity_text: string | null
