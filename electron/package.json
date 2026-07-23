@@ -1,0 +1,7 @@
+{
+  "name": "luris-desktop",
+  "version": "1.0.0",
+  "description": "Luris — aplicativo desktop",
+  "main": "main.cjs",
+  "author": "Lulle 🌑"
+}
