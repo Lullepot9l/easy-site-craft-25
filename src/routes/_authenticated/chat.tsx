@@ -31,7 +31,7 @@ const ROLE_LABEL: Record<string, { label: string; icon: typeof Crown; color: str
   user:    { label: "FREE",       icon: UserCircle2, color: "oklch(0.7_0.05_295)" },
 };
 
-const WELCOME_USER: Msg = { role: "assistant", content: "🔒 A **Luris** é uma IA pessoal exclusiva do Owner 👑.\n\nVocê pode explorar o resto do LURIS (perfil, marketplace, hub, phases…), mas o chat e a voz da Luris ficam bloqueados." };
+const WELCOME_USER: Msg = { role: "assistant", content: "Oi! Sou a **Luris** ✨. Bora conversar? Me pergunta o que quiser — posso te ajudar com ideias, textos e mais." };
 const WELCOME_OWNER: Msg = { role: "assistant", content: "Eae Lulle 🌑✨ tô aqui. O que a gente vai fazer hoje?" };
 
 function ChatPage() {
@@ -162,10 +162,6 @@ ${messages.map(m => `<div class="msg ${m.role}"><div class="role">${m.role === "
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (loading || !user) return;
-    if (!isOwner) {
-      toast.error("A Luris é exclusiva do Owner 👑");
-      return;
-    }
     if (!input.trim() && attachedImages.length === 0 && !imgMode) return;
 
     // ---------- MODO GERAR IMAGEM ----------
