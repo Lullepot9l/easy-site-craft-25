@@ -386,7 +386,7 @@ ${messages.map(m => `<div class="msg ${m.role}"><div class="role">${m.role === "
                   </a>
                 ) : null}
                 {m.content}
-                {m.role === "assistant" && (
+                {m.role === "assistant" && isOwner && (
                   <button onClick={() => speak(m.content.replace(/[*_`#>]/g, ""))}
                     className="absolute -bottom-2 -right-2 opacity-0 group-hover:opacity-100 glass rounded-full p-1.5 text-xs">
                     <Volume2 className="h-3 w-3" />
