@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { AvatarBubble } from "@/components/AvatarBubble";
-import { Image as ImgIcon, Palette, Save, RotateCcw } from "lucide-react";
+import { Image as ImgIcon, Palette, Save, RotateCcw, Upload } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/settings")({ component: SettingsPage });
 
@@ -31,6 +31,36 @@ function SettingsPage() {
   const [scope, setScope] = useState<"all" | "single">("all");
   const [bg, setBg] = useState<BgCfg>({ mode: "color", value: "oklch(0.15 0.05 285)" });
   const [saving, setSaving] = useState(false);
+  const avatarFileRef = useRef<HTMLInputElement>(null);
+  const bgFileRef = useRef<HTMLInputElement>(null);
+
+  function readFileAsDataURL(file: File, maxMB: number): Promise<string> {
+    return new Promise((resolve, reject) => {
+      if (!file.type.startsWith("image/")) return reject(new Error("Só imagens"));
+      if (file.size > maxMB * 1024 * 1024) return reject(new Error(`Máx ${maxMB}MB`));
+      const r = new FileReader();
+      r.onload = (e) => resolve(String(e.target?.result ?? ""));
+      r.onerror = () => reject(new Error("Falha ao ler arquivo"));
+      r.readAsDataURL(file);
+    });
+  }
+
+  async function onPickAvatar(file: File | null | undefined) {
+    if (!file) return;
+    try {
+      const url = await readFileAsDataURL(file, 2);
+      setAvatarUrl(url);
+      toast.success("Foto carregada — clica em Salvar perfil");
+    } catch (e) { toast.error(e instanceof Error ? e.message : "Erro"); }
+  }
+
+  async function onPickBgFile(file: File | null | undefined) {
+    if (!file) return;
+    try {
+      const url = await readFileAsDataURL(file, 4);
+      applyBg({ mode: "image", value: url });
+    } catch (e) { toast.error(e instanceof Error ? e.message : "Erro"); }
+  }
 
   useEffect(() => { setAvatarUrl(profile?.avatar_url ?? ""); setDisplayName(profile?.display_name ?? ""); }, [profile?.id]);
   useEffect(() => {
@@ -87,8 +117,18 @@ function SettingsPage() {
               placeholder="Nome de exibição"
               className="w-full glass px-3 py-2 rounded-lg text-sm font-mono" />
             <input value={avatarUrl} onChange={(e)=>setAvatarUrl(e.target.value)}
-              placeholder="URL da foto de perfil (https://...)"
+              placeholder="URL da foto (ou envie um arquivo abaixo)"
               className="w-full glass px-3 py-2 rounded-lg text-sm font-mono" />
+            <div
+              onDragOver={(e)=>e.preventDefault()}
+              onDrop={(e)=>{ e.preventDefault(); onPickAvatar(e.dataTransfer.files?.[0]); }}
+              onClick={()=>avatarFileRef.current?.click()}
+              className="glass rounded-lg p-3 border-2 border-dashed border-[oklch(0.4_0.2_295/0.4)] hover:border-[oklch(0.6_0.3_295)] cursor-pointer text-center text-xs font-mono text-muted-foreground">
+              <Upload className="h-4 w-4 mx-auto mb-1 text-[oklch(0.7_0.28_295)]" />
+              Arrasta ou clica pra enviar uma foto (PNG/JPG, máx 2MB)
+            </div>
+            <input ref={avatarFileRef} type="file" accept="image/*" className="hidden"
+              onChange={(e)=>onPickAvatar(e.target.files?.[0])} />
           </div>
         </div>
         <button onClick={saveProfile} disabled={saving} className="btn-neon px-4 py-2 rounded-lg text-sm font-display flex items-center gap-2">
@@ -120,6 +160,16 @@ function SettingsPage() {
               className="flex-1 glass px-3 py-2 rounded-lg text-sm font-mono" />
             <button onClick={()=>bg.mode==="image" && bg.value && applyBg(bg)} className="btn-neon px-4 rounded-lg text-xs font-display">Aplicar</button>
           </div>
+          <div
+            onDragOver={(e)=>e.preventDefault()}
+            onDrop={(e)=>{ e.preventDefault(); onPickBgFile(e.dataTransfer.files?.[0]); }}
+            onClick={()=>bgFileRef.current?.click()}
+            className="glass rounded-lg p-4 border-2 border-dashed border-[oklch(0.4_0.2_295/0.4)] hover:border-[oklch(0.6_0.3_295)] cursor-pointer text-center text-xs font-mono text-muted-foreground">
+            <Upload className="h-5 w-5 mx-auto mb-1 text-[oklch(0.7_0.28_295)]" />
+            Ou envia um arquivo do seu PC (arrasta ou clica — PNG/JPG, máx 4MB)
+          </div>
+          <input ref={bgFileRef} type="file" accept="image/*" className="hidden"
+            onChange={(e)=>onPickBgFile(e.target.files?.[0])} />
         </div>
 
         <button onClick={resetBg} className="glass px-3 py-1.5 rounded-lg text-xs font-mono flex items-center gap-2">
