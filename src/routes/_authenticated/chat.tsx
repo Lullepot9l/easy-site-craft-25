@@ -63,6 +63,7 @@ function ChatPage() {
   const screenVideoRef = useRef<HTMLVideoElement | null>(null);
   const chatFileRef = useRef<HTMLInputElement>(null);
   const [chatBg, setChatBg] = useState<{ mode: "color" | "image"; value: string } | null>(null);
+  const lastTaskNounRef = useRef<string>("a tarefa");
 
   const endRef = useRef<HTMLDivElement>(null);
 
@@ -208,7 +209,13 @@ ${messages.map(m => `<div class="msg ${m.role}"><div class="role">${m.role === "
       const asst: Msg = { role: "assistant", content: full };
 
       pingSound();
-      if (voiceOn) speak(role === "owner" ? `Lulle, finalizei ${taskNoun}.` : `Senhor, finalizei ${taskNoun}.`);
+      // Se "Fala comigo" estiver ativo, a Luris fala a resposta REAL dela (não um aviso canned).
+      if (voiceOn) {
+        const spoken = full.replace(/\[\[[^\]]+\]\]/g, "").replace(/[*_`#>]/g, "").trim();
+        if (spoken) speak(spoken);
+      }
+      // guarda o "noun" da tarefa pra usar no botão manual de notificação
+      lastTaskNounRef.current = taskNoun;
 
       let convId = activeId;
       if (!convId) {
@@ -350,6 +357,12 @@ ${messages.map(m => `<div class="msg ${m.role}"><div class="role">${m.role === "
                 </button>
                 <button onClick={() => setVoiceSettingsOpen(true)} title="Configurar voz + tutorial" className="glass px-3 py-2 rounded-lg text-xs font-mono flex items-center gap-2">
                   <Settings2 className="h-3 w-3" /> Voz✨
+                </button>
+                <button
+                  onClick={() => { pingSound(); speak(`Lulle, finalizei ${lastTaskNounRef.current}.`); }}
+                  title="Fazer a Luris avisar que terminou a última tarefa"
+                  className="glass px-3 py-2 rounded-lg text-xs font-mono flex items-center gap-2">
+                  🔔 Avisar
                 </button>
               </>
             )}
