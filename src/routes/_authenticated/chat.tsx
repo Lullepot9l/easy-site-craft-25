@@ -358,6 +358,12 @@ ${messages.map(m => `<div class="msg ${m.role}"><div class="role">${m.role === "
                 <button onClick={() => setVoiceSettingsOpen(true)} title="Configurar voz + tutorial" className="glass px-3 py-2 rounded-lg text-xs font-mono flex items-center gap-2">
                   <Settings2 className="h-3 w-3" /> Voz✨
                 </button>
+                <button
+                  onClick={() => { pingSound(); speak(`Lulle, finalizei ${lastTaskNounRef.current}.`); }}
+                  title="Fazer a Luris avisar que terminou a última tarefa"
+                  className="glass px-3 py-2 rounded-lg text-xs font-mono flex items-center gap-2">
+                  🔔 Avisar
+                </button>
               </>
             )}
             <button onClick={exportChatPdf} className="glass px-3 py-2 rounded-lg text-xs font-mono flex items-center gap-2">
