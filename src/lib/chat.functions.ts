@@ -86,10 +86,6 @@ export const chatLuris = createServerFn({ method: "POST" })
     ]);
 
     const isOwner = Boolean(isOwnerRow);
-    if (!isOwner) {
-      return { error: "A Luris é exclusiva do Owner 👑. Você não tem permissão para conversar com ela.", content: "" };
-    }
-
     const baseSystem = (settings as { system_prompt?: string } | null)?.system_prompt ?? FALLBACK_SYSTEM;
     const memories = (memRows ?? []) as MemRow[];
 
