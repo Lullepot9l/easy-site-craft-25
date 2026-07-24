@@ -31,7 +31,7 @@ const ROLE_LABEL: Record<string, { label: string; icon: typeof Crown; color: str
   user:    { label: "FREE",       icon: UserCircle2, color: "oklch(0.7_0.05_295)" },
 };
 
-const WELCOME_USER: Msg = { role: "assistant", content: "🔒 A **Luris** é uma IA pessoal exclusiva do Owner 👑.\n\nVocê pode explorar o resto do LURIS (perfil, marketplace, hub, phases…), mas o chat e a voz da Luris ficam bloqueados." };
+const WELCOME_USER: Msg = { role: "assistant", content: "Oi! Sou a **Luris** ✨. Bora conversar? Me pergunta o que quiser — posso te ajudar com ideias, textos e mais." };
 const WELCOME_OWNER: Msg = { role: "assistant", content: "Eae Lulle 🌑✨ tô aqui. O que a gente vai fazer hoje?" };
 
 function ChatPage() {
@@ -62,8 +62,16 @@ function ChatPage() {
   const screenStreamRef = useRef<MediaStream | null>(null);
   const screenVideoRef = useRef<HTMLVideoElement | null>(null);
   const chatFileRef = useRef<HTMLInputElement>(null);
+  const [chatBg, setChatBg] = useState<{ mode: "color" | "image"; value: string } | null>(null);
 
   const endRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("luris.chat.bg");
+      if (raw) { const p = JSON.parse(raw); if (p?.mode && p?.value) setChatBg({ mode: p.mode, value: p.value }); }
+    } catch { /* noop */ }
+  }, []);
 
   // Rehydrate messages/draft SCOPED to the current user (prevents cross-account leak on shared browser)
   useEffect(() => {
@@ -162,10 +170,6 @@ ${messages.map(m => `<div class="msg ${m.role}"><div class="role">${m.role === "
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (loading || !user) return;
-    if (!isOwner) {
-      toast.error("A Luris é exclusiva do Owner 👑");
-      return;
-    }
     if (!input.trim() && attachedImages.length === 0 && !imgMode) return;
 
     // ---------- MODO GERAR IMAGEM ----------
@@ -338,12 +342,17 @@ ${messages.map(m => `<div class="msg ${m.role}"><div class="role">${m.role === "
               className={`glass px-3 py-2 rounded-lg text-xs font-mono flex items-center gap-2 ${smartMode ? "neon-text glow-purple" : ""}`}>
               <Sparkles className="h-3 w-3" /> Smart
             </button>
-            <button onClick={toggleVoice} className={`glass px-3 py-2 rounded-lg text-xs font-mono flex items-center gap-2 ${voiceOn ? "neon-text" : ""}`}>
-              {voiceOn ? <Volume2 className="h-3 w-3" /> : <VolumeX className="h-3 w-3" />} Voz
-            </button>
-            <button onClick={() => setVoiceSettingsOpen(true)} title="Configurar voz + tutorial" className="glass px-3 py-2 rounded-lg text-xs font-mono flex items-center gap-2">
-              <Settings2 className="h-3 w-3" /> Voz✨
-            </button>
+            {isOwner && (
+              <>
+                <button onClick={toggleVoice} title="A Luris fala comigo com a voz escolhida"
+                  className={`glass px-3 py-2 rounded-lg text-xs font-mono flex items-center gap-2 ${voiceOn ? "neon-text glow-purple" : ""}`}>
+                  {voiceOn ? <Volume2 className="h-3 w-3" /> : <VolumeX className="h-3 w-3" />} Fala comigo
+                </button>
+                <button onClick={() => setVoiceSettingsOpen(true)} title="Configurar voz + tutorial" className="glass px-3 py-2 rounded-lg text-xs font-mono flex items-center gap-2">
+                  <Settings2 className="h-3 w-3" /> Voz✨
+                </button>
+              </>
+            )}
             <button onClick={exportChatPdf} className="glass px-3 py-2 rounded-lg text-xs font-mono flex items-center gap-2">
               <FileDown className="h-3 w-3" /> PDF
             </button>
@@ -354,7 +363,11 @@ ${messages.map(m => `<div class="msg ${m.role}"><div class="role">${m.role === "
         </header>
 
         <div
-          className={`flex-1 overflow-y-auto space-y-4 mb-4 pr-2 rounded-2xl transition ${dragOver ? "ring-2 ring-[oklch(0.7_0.32_295)] bg-[oklch(0.3_0.2_295/0.08)]" : ""}`}
+          className={`flex-1 overflow-y-auto space-y-4 mb-4 p-3 rounded-2xl transition ${dragOver ? "ring-2 ring-[oklch(0.7_0.32_295)] bg-[oklch(0.3_0.2_295/0.08)]" : ""}`}
+          style={chatBg ? (chatBg.mode === "color"
+            ? { background: chatBg.value }
+            : { backgroundImage: `linear-gradient(oklch(0.08 0.04 285 / 0.55), oklch(0.08 0.04 285 / 0.55)), url(${chatBg.value})`, backgroundSize: "cover", backgroundPosition: "center" })
+            : undefined}
           onDragOver={(e) => { e.preventDefault(); if (isOwner) setDragOver(true); }}
           onDragLeave={() => setDragOver(false)}
           onDrop={(e) => {
@@ -385,7 +398,7 @@ ${messages.map(m => `<div class="msg ${m.role}"><div class="role">${m.role === "
                   </a>
                 ) : null}
                 {m.content}
-                {m.role === "assistant" && (
+                {m.role === "assistant" && isOwner && (
                   <button onClick={() => speak(m.content.replace(/[*_`#>]/g, ""))}
                     className="absolute -bottom-2 -right-2 opacity-0 group-hover:opacity-100 glass rounded-full p-1.5 text-xs">
                     <Volume2 className="h-3 w-3" />
@@ -496,9 +509,9 @@ ${messages.map(m => `<div class="msg ${m.role}"><div class="role">${m.role === "
             </div>
           )}
           <input value={input} onChange={(e) => setInput(e.target.value)}
-            placeholder={!isOwner ? "🔒 Luris é exclusiva do Owner" : (imgMode ? "Descreva a imagem que a Luris deve criar..." : "Pergunte qualquer coisa à Luris... (arraste imagens, Ctrl+V, ou compartilhe sua tela)")}
-            className="flex-1 bg-transparent px-4 py-3 outline-none font-body disabled:opacity-50" disabled={loading || !isOwner} />
-          <button type="submit" disabled={loading || !isOwner || (!input.trim() && attachedImages.length === 0 && !imgMode)} className="btn-neon px-5 rounded-xl disabled:opacity-50">
+            placeholder={imgMode ? "Descreva a imagem que a Luris deve criar..." : "Pergunte qualquer coisa à Luris..."}
+            className="flex-1 bg-transparent px-4 py-3 outline-none font-body disabled:opacity-50" disabled={loading} />
+          <button type="submit" disabled={loading || (!input.trim() && attachedImages.length === 0 && !imgMode)} className="btn-neon px-5 rounded-xl disabled:opacity-50">
             <Send className="h-4 w-4" />
           </button>
         </form>

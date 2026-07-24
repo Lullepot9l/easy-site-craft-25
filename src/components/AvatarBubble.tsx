@@ -12,11 +12,19 @@ interface Props {
 export function AvatarBubble({ url, name, size = 40, effect, className = "" }: Props) {
   const fx = effect ? `fx-wrap ${effect}` : "";
   const initial = (name?.trim()?.[0] ?? "?").toUpperCase();
-  const style = { width: size, height: size };
+  const style = { width: size, height: size, aspectRatio: "1 / 1" as const, boxSizing: "border-box" as const };
+  const wrapStyle = {
+    width: size,
+    height: size,
+    aspectRatio: "1 / 1" as const,
+    lineHeight: 0,
+    flex: "0 0 auto",
+    boxSizing: "border-box" as const,
+  };
   return (
     <span
-      className={`${fx} shrink-0 inline-block align-middle ${className}`}
-      style={{ width: size, height: size, lineHeight: 0 }}
+      className={`${fx} shrink-0 inline-flex items-center justify-center align-middle ${className}`}
+      style={wrapStyle}
     >
       {url ? (
         <img

@@ -15,6 +15,7 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SSlugRouteImport } from './routes/s.$slug'
 import { Route as AuthenticatedSocialRouteImport } from './routes/_authenticated/social'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedScriptforgeRouteImport } from './routes/_authenticated/scriptforge'
 import { Route as AuthenticatedRobloxRouteImport } from './routes/_authenticated/roblox'
 import { Route as AuthenticatedPremiumRouteImport } from './routes/_authenticated/premium'
@@ -67,6 +68,11 @@ const SSlugRoute = SSlugRouteImport.update({
 const AuthenticatedSocialRoute = AuthenticatedSocialRouteImport.update({
   id: '/social',
   path: '/social',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedScriptforgeRoute =
@@ -218,6 +224,7 @@ export interface FileRoutesByFullPath {
   '/premium': typeof AuthenticatedPremiumRoute
   '/roblox': typeof AuthenticatedRobloxRoute
   '/scriptforge': typeof AuthenticatedScriptforgeRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/social': typeof AuthenticatedSocialRoute
   '/s/$slug': typeof SSlugRoute
   '/api/public/luris': typeof ApiPublicLurisRouteWithChildren
@@ -249,6 +256,7 @@ export interface FileRoutesByTo {
   '/premium': typeof AuthenticatedPremiumRoute
   '/roblox': typeof AuthenticatedRobloxRoute
   '/scriptforge': typeof AuthenticatedScriptforgeRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/social': typeof AuthenticatedSocialRoute
   '/s/$slug': typeof SSlugRoute
   '/api/public/luris': typeof ApiPublicLurisRouteWithChildren
@@ -282,6 +290,7 @@ export interface FileRoutesById {
   '/_authenticated/premium': typeof AuthenticatedPremiumRoute
   '/_authenticated/roblox': typeof AuthenticatedRobloxRoute
   '/_authenticated/scriptforge': typeof AuthenticatedScriptforgeRoute
+  '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/social': typeof AuthenticatedSocialRoute
   '/s/$slug': typeof SSlugRoute
   '/api/public/luris': typeof ApiPublicLurisRouteWithChildren
@@ -315,6 +324,7 @@ export interface FileRouteTypes {
     | '/premium'
     | '/roblox'
     | '/scriptforge'
+    | '/settings'
     | '/social'
     | '/s/$slug'
     | '/api/public/luris'
@@ -346,6 +356,7 @@ export interface FileRouteTypes {
     | '/premium'
     | '/roblox'
     | '/scriptforge'
+    | '/settings'
     | '/social'
     | '/s/$slug'
     | '/api/public/luris'
@@ -378,6 +389,7 @@ export interface FileRouteTypes {
     | '/_authenticated/premium'
     | '/_authenticated/roblox'
     | '/_authenticated/scriptforge'
+    | '/_authenticated/settings'
     | '/_authenticated/social'
     | '/s/$slug'
     | '/api/public/luris'
@@ -438,6 +450,13 @@ declare module '@tanstack/react-router' {
       path: '/social'
       fullPath: '/social'
       preLoaderRoute: typeof AuthenticatedSocialRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/scriptforge': {
@@ -632,6 +651,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedPremiumRoute: typeof AuthenticatedPremiumRoute
   AuthenticatedRobloxRoute: typeof AuthenticatedRobloxRoute
   AuthenticatedScriptforgeRoute: typeof AuthenticatedScriptforgeRoute
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedSocialRoute: typeof AuthenticatedSocialRoute
 }
 
@@ -656,6 +676,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedPremiumRoute: AuthenticatedPremiumRoute,
   AuthenticatedRobloxRoute: AuthenticatedRobloxRoute,
   AuthenticatedScriptforgeRoute: AuthenticatedScriptforgeRoute,
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedSocialRoute: AuthenticatedSocialRoute,
 }
 
