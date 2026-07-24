@@ -62,8 +62,16 @@ function ChatPage() {
   const screenStreamRef = useRef<MediaStream | null>(null);
   const screenVideoRef = useRef<HTMLVideoElement | null>(null);
   const chatFileRef = useRef<HTMLInputElement>(null);
+  const [chatBg, setChatBg] = useState<{ mode: "color" | "image"; value: string } | null>(null);
 
   const endRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("luris.chat.bg");
+      if (raw) { const p = JSON.parse(raw); if (p?.mode && p?.value) setChatBg({ mode: p.mode, value: p.value }); }
+    } catch { /* noop */ }
+  }, []);
 
   // Rehydrate messages/draft SCOPED to the current user (prevents cross-account leak on shared browser)
   useEffect(() => {
