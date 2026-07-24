@@ -63,6 +63,7 @@ function ChatPage() {
   const screenVideoRef = useRef<HTMLVideoElement | null>(null);
   const chatFileRef = useRef<HTMLInputElement>(null);
   const [chatBg, setChatBg] = useState<{ mode: "color" | "image"; value: string } | null>(null);
+  const lastTaskNounRef = useRef<string>("a tarefa");
 
   const endRef = useRef<HTMLDivElement>(null);
 
