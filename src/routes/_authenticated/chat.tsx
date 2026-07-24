@@ -363,7 +363,11 @@ ${messages.map(m => `<div class="msg ${m.role}"><div class="role">${m.role === "
         </header>
 
         <div
-          className={`flex-1 overflow-y-auto space-y-4 mb-4 pr-2 rounded-2xl transition ${dragOver ? "ring-2 ring-[oklch(0.7_0.32_295)] bg-[oklch(0.3_0.2_295/0.08)]" : ""}`}
+          className={`flex-1 overflow-y-auto space-y-4 mb-4 p-3 rounded-2xl transition ${dragOver ? "ring-2 ring-[oklch(0.7_0.32_295)] bg-[oklch(0.3_0.2_295/0.08)]" : ""}`}
+          style={chatBg ? (chatBg.mode === "color"
+            ? { background: chatBg.value }
+            : { backgroundImage: `linear-gradient(oklch(0.08 0.04 285 / 0.55), oklch(0.08 0.04 285 / 0.55)), url(${chatBg.value})`, backgroundSize: "cover", backgroundPosition: "center" })
+            : undefined}
           onDragOver={(e) => { e.preventDefault(); if (isOwner) setDragOver(true); }}
           onDragLeave={() => setDragOver(false)}
           onDrop={(e) => {
