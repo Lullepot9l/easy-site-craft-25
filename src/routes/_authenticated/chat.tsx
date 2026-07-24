@@ -208,7 +208,13 @@ ${messages.map(m => `<div class="msg ${m.role}"><div class="role">${m.role === "
       const asst: Msg = { role: "assistant", content: full };
 
       pingSound();
-      if (voiceOn) speak(role === "owner" ? `Lulle, finalizei ${taskNoun}.` : `Senhor, finalizei ${taskNoun}.`);
+      // Se "Fala comigo" estiver ativo, a Luris fala a resposta REAL dela (não um aviso canned).
+      if (voiceOn) {
+        const spoken = full.replace(/\[\[[^\]]+\]\]/g, "").replace(/[*_`#>]/g, "").trim();
+        if (spoken) speak(spoken);
+      }
+      // guarda o "noun" da tarefa pra usar no botão manual de notificação
+      lastTaskNounRef.current = taskNoun;
 
       let convId = activeId;
       if (!convId) {
