@@ -334,12 +334,17 @@ ${messages.map(m => `<div class="msg ${m.role}"><div class="role">${m.role === "
               className={`glass px-3 py-2 rounded-lg text-xs font-mono flex items-center gap-2 ${smartMode ? "neon-text glow-purple" : ""}`}>
               <Sparkles className="h-3 w-3" /> Smart
             </button>
-            <button onClick={toggleVoice} className={`glass px-3 py-2 rounded-lg text-xs font-mono flex items-center gap-2 ${voiceOn ? "neon-text" : ""}`}>
-              {voiceOn ? <Volume2 className="h-3 w-3" /> : <VolumeX className="h-3 w-3" />} Voz
-            </button>
-            <button onClick={() => setVoiceSettingsOpen(true)} title="Configurar voz + tutorial" className="glass px-3 py-2 rounded-lg text-xs font-mono flex items-center gap-2">
-              <Settings2 className="h-3 w-3" /> Voz✨
-            </button>
+            {isOwner && (
+              <>
+                <button onClick={toggleVoice} title="A Luris fala comigo com a voz escolhida"
+                  className={`glass px-3 py-2 rounded-lg text-xs font-mono flex items-center gap-2 ${voiceOn ? "neon-text glow-purple" : ""}`}>
+                  {voiceOn ? <Volume2 className="h-3 w-3" /> : <VolumeX className="h-3 w-3" />} Fala comigo
+                </button>
+                <button onClick={() => setVoiceSettingsOpen(true)} title="Configurar voz + tutorial" className="glass px-3 py-2 rounded-lg text-xs font-mono flex items-center gap-2">
+                  <Settings2 className="h-3 w-3" /> Voz✨
+                </button>
+              </>
+            )}
             <button onClick={exportChatPdf} className="glass px-3 py-2 rounded-lg text-xs font-mono flex items-center gap-2">
               <FileDown className="h-3 w-3" /> PDF
             </button>
@@ -492,9 +497,9 @@ ${messages.map(m => `<div class="msg ${m.role}"><div class="role">${m.role === "
             </div>
           )}
           <input value={input} onChange={(e) => setInput(e.target.value)}
-            placeholder={!isOwner ? "🔒 Luris é exclusiva do Owner" : (imgMode ? "Descreva a imagem que a Luris deve criar..." : "Pergunte qualquer coisa à Luris... (arraste imagens, Ctrl+V, ou compartilhe sua tela)")}
-            className="flex-1 bg-transparent px-4 py-3 outline-none font-body disabled:opacity-50" disabled={loading || !isOwner} />
-          <button type="submit" disabled={loading || !isOwner || (!input.trim() && attachedImages.length === 0 && !imgMode)} className="btn-neon px-5 rounded-xl disabled:opacity-50">
+            placeholder={imgMode ? "Descreva a imagem que a Luris deve criar..." : "Pergunte qualquer coisa à Luris..."}
+            className="flex-1 bg-transparent px-4 py-3 outline-none font-body disabled:opacity-50" disabled={loading} />
+          <button type="submit" disabled={loading || (!input.trim() && attachedImages.length === 0 && !imgMode)} className="btn-neon px-5 rounded-xl disabled:opacity-50">
             <Send className="h-4 w-4" />
           </button>
         </form>
