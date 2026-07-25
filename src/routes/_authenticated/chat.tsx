@@ -381,11 +381,10 @@ ${messages.map(m => `<div class="msg ${m.role}"><div class="role">${m.role === "
             ? { background: chatBg.value }
             : { backgroundImage: `linear-gradient(oklch(0.08 0.04 285 / 0.55), oklch(0.08 0.04 285 / 0.55)), url(${chatBg.value})`, backgroundSize: "cover", backgroundPosition: "center" })
             : undefined}
-          onDragOver={(e) => { e.preventDefault(); if (isOwner) setDragOver(true); }}
+          onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
           onDragLeave={() => setDragOver(false)}
           onDrop={(e) => {
             e.preventDefault(); setDragOver(false);
-            if (!isOwner) return;
             onPickChatFiles(e.dataTransfer.files);
           }}
         >
@@ -465,7 +464,6 @@ ${messages.map(m => `<div class="msg ${m.role}"><div class="role">${m.role === "
         <form
           onSubmit={submit}
           onPaste={(e) => {
-            if (!isOwner) return;
             const items = Array.from(e.clipboardData?.items ?? []);
             const files = items.map((i) => i.getAsFile()).filter((f): f is File => !!f && f.type.startsWith("image/"));
             if (files.length) { e.preventDefault(); onPickChatFiles(files); }
@@ -484,32 +482,25 @@ ${messages.map(m => `<div class="msg ${m.role}"><div class="role">${m.role === "
                   <Upload className="h-3 w-3" /> Anexar imagem(ns) — até 4
                 </button>
                 {isOwner && (
-                  <>
-                    <button type="button" onClick={() => { setImgMode(true); setPlusOpen(false); }}
-                      className="w-full text-left px-3 py-2 rounded-lg hover:bg-[oklch(0.3_0.2_330/0.4)] flex items-center gap-2 text-xs font-mono">
-                      <ImgIcon className="h-3 w-3" /> Gerar imagem com IA
-                    </button>
-                    {!sharing ? (
-                      <button type="button" onClick={() => { setPlusOpen(false); startShareScreen(); }}
-                        className="w-full text-left px-3 py-2 rounded-lg hover:bg-[oklch(0.3_0.2_295/0.4)] flex items-center gap-2 text-xs font-mono">
-                        <Monitor className="h-3 w-3" /> Compartilhar tela / app com a Luris
-                      </button>
-                    ) : (
-                      <button type="button" onClick={() => { setPlusOpen(false); attachScreenFrame(); }}
-                        className="w-full text-left px-3 py-2 rounded-lg hover:bg-[oklch(0.3_0.2_295/0.4)] flex items-center gap-2 text-xs font-mono">
-                        <Monitor className="h-3 w-3" /> Anexar frame da tela agora
-                      </button>
-                    )}
-                    <div className="px-3 pt-1 pb-0.5 text-[9px] text-muted-foreground font-mono">
-                      dica: você também pode <b>arrastar</b> imagens pra área do chat ou <b>colar</b> (Ctrl+V).
-                    </div>
-                  </>
+                  <button type="button" onClick={() => { setImgMode(true); setPlusOpen(false); }}
+                    className="w-full text-left px-3 py-2 rounded-lg hover:bg-[oklch(0.3_0.2_330/0.4)] flex items-center gap-2 text-xs font-mono">
+                    <ImgIcon className="h-3 w-3" /> Gerar imagem com IA
+                  </button>
                 )}
-                {!isOwner && (
-                  <div className="px-3 py-2 text-[10px] text-muted-foreground font-mono">
-                    Recursos avançados são exclusivos do Owner 👑
-                  </div>
-                )}
+                {isOwner && (!sharing ? (
+                  <button type="button" onClick={() => { setPlusOpen(false); startShareScreen(); }}
+                    className="w-full text-left px-3 py-2 rounded-lg hover:bg-[oklch(0.3_0.2_295/0.4)] flex items-center gap-2 text-xs font-mono">
+                    <Monitor className="h-3 w-3" /> Compartilhar tela / app com a Luris
+                  </button>
+                ) : (
+                  <button type="button" onClick={() => { setPlusOpen(false); attachScreenFrame(); }}
+                    className="w-full text-left px-3 py-2 rounded-lg hover:bg-[oklch(0.3_0.2_295/0.4)] flex items-center gap-2 text-xs font-mono">
+                    <Monitor className="h-3 w-3" /> Anexar frame da tela agora
+                  </button>
+                ))}
+                <div className="px-3 pt-1 pb-0.5 text-[9px] text-muted-foreground font-mono">
+                  dica: você também pode <b>arrastar</b> imagens pra área do chat ou <b>colar</b> (Ctrl+V).
+                </div>
               </div>
             )}
             <input ref={chatFileRef} type="file" accept="image/*" multiple className="hidden"
