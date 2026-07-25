@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { AvatarBubble } from "@/components/AvatarBubble";
-import { Image as ImgIcon, Palette, Save, RotateCcw, Upload } from "lucide-react";
+import { Activity, Badge, Gamepad2, Image as ImgIcon, Palette, Save, RotateCcw, Upload } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/settings")({ component: SettingsPage });
 
@@ -12,6 +12,30 @@ const BG_KEY = "luris.chat.bg";        // JSON: { mode: "color"|"image", value: 
 const BG_MAP_KEY = "luris.chat.bg.map"; // JSON: Record<convId, {mode,value}>
 
 type BgCfg = { mode: "color" | "image"; value: string };
+
+const NAME_COLORS = [
+  { value: "gradient", label: "Gradiente Luris", className: "gradient-text" },
+  { value: "magenta", label: "Magenta", className: "neon-text-magenta" },
+  { value: "cyan", label: "Ciano", className: "neon-text-cyan" },
+  { value: "soft", label: "Suave", className: "text-[oklch(0.96_0.02_295)]" },
+] as const;
+
+const NAME_FONTS = [
+  { value: "display", label: "Cyber", className: "font-display" },
+  { value: "mono", label: "Mono", className: "font-mono" },
+  { value: "soft", label: "Soft", className: "font-body" },
+  { value: "nightberry", label: "Nightberry", className: "font-nightberry" },
+] as const;
+
+const PROFILE_THEMES = ["neon", "nightberry", "sakura", "galaxy"] as const;
+
+function csvToArray(value: string) {
+  return value.split(",").map((v) => v.trim()).filter(Boolean).slice(0, 8);
+}
+
+function optionClass<T extends readonly { value: string; className: string }[]>(options: T, value?: string | null) {
+  return options.find((o) => o.value === value)?.className ?? options[0].className;
+}
 
 const PRESETS: BgCfg[] = [
   { mode: "color", value: "oklch(0.15 0.05 285)" },
@@ -28,6 +52,18 @@ function SettingsPage() {
   const { user, profile, isOwner } = useAuth();
   const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url ?? "");
   const [displayName, setDisplayName] = useState(profile?.display_name ?? "");
+  const [username, setUsername] = useState(profile?.username ?? "");
+  const [codename, setCodename] = useState(profile?.codename ?? "");
+  const [bio, setBio] = useState(profile?.bio ?? "");
+  const [activityStatus, setActivityStatus] = useState(profile?.activity_status ?? "online");
+  const [currentGame, setCurrentGame] = useState(profile?.current_game ?? "");
+  const [favoriteGames, setFavoriteGames] = useState((profile?.favorite_games ?? []).join(", "));
+  const [mutualServers, setMutualServers] = useState((profile?.mutual_servers ?? []).join(", "));
+  const [discordUsername, setDiscordUsername] = useState(profile?.discord_username ?? "");
+  const [whatsappNumber, setWhatsappNumber] = useState(profile?.whatsapp_number ?? "");
+  const [nameColor, setNameColor] = useState(profile?.name_color ?? "gradient");
+  const [nameFont, setNameFont] = useState(profile?.name_font ?? "display");
+  const [profileTheme, setProfileTheme] = useState(profile?.profile_theme ?? "neon");
   const [scope, setScope] = useState<"all" | "single">("all");
   const [bg, setBg] = useState<BgCfg>({ mode: "color", value: "oklch(0.15 0.05 285)" });
   const [saving, setSaving] = useState(false);
@@ -62,7 +98,22 @@ function SettingsPage() {
     } catch (e) { toast.error(e instanceof Error ? e.message : "Erro"); }
   }
 
-  useEffect(() => { setAvatarUrl(profile?.avatar_url ?? ""); setDisplayName(profile?.display_name ?? ""); }, [profile?.id]);
+  useEffect(() => {
+    setAvatarUrl(profile?.avatar_url ?? "");
+    setDisplayName(profile?.display_name ?? "");
+    setUsername(profile?.username ?? "");
+    setCodename(profile?.codename ?? "");
+    setBio(profile?.bio ?? "");
+    setActivityStatus(profile?.activity_status ?? "online");
+    setCurrentGame(profile?.current_game ?? "");
+    setFavoriteGames((profile?.favorite_games ?? []).join(", "));
+    setMutualServers((profile?.mutual_servers ?? []).join(", "));
+    setDiscordUsername(profile?.discord_username ?? "");
+    setWhatsappNumber(profile?.whatsapp_number ?? "");
+    setNameColor(profile?.name_color ?? "gradient");
+    setNameFont(profile?.name_font ?? "display");
+    setProfileTheme(profile?.profile_theme ?? "neon");
+  }, [profile?.id]);
   useEffect(() => {
     try {
       const raw = localStorage.getItem(BG_KEY);
@@ -77,6 +128,19 @@ function SettingsPage() {
       const { error } = await supabase.from("profiles").update({
         avatar_url: avatarUrl || null,
         display_name: displayName || null,
+        username: username.trim() || null,
+        codename: codename.trim() || null,
+        bio: bio.trim() || null,
+        activity_status: activityStatus.trim() || "online",
+        current_game: currentGame.trim(),
+        favorite_games: csvToArray(favoriteGames),
+        mutual_servers: csvToArray(mutualServers),
+        discord_username: discordUsername.trim() || null,
+        whatsapp_number: whatsappNumber.trim() || null,
+        name_color: nameColor,
+        name_font: nameFont,
+        profile_theme: profileTheme,
+        updated_at: new Date().toISOString(),
       }).eq("id", user.id);
       if (error) throw error;
       toast.success("Perfil atualizado 🌑");
@@ -102,23 +166,40 @@ function SettingsPage() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6 animate-fade-in-up">
+    <div className="max-w-5xl mx-auto space-y-6 animate-fade-in-up">
       <div>
         <h1 className="text-3xl font-display gradient-text">⚙️ Configurações</h1>
-        <p className="text-sm text-muted-foreground">Foto, nome de exibição e fundo das conversas.</p>
+        <p className="text-sm text-muted-foreground">Perfil, status, contatos, estilo e fundo das conversas.</p>
       </div>
+
+      <section className={`glass-strong rounded-2xl p-5 overflow-hidden profile-theme-${profileTheme}`}>
+        <div className="flex flex-col md:flex-row gap-5 md:items-center">
+          <AvatarBubble url={avatarUrl} name={displayName} size={96} effect={profile?.equipped_effect ?? (isOwner ? "fx-owner-purple" : null)} />
+          <div className="flex-1 min-w-0">
+            <div className={`text-3xl ${optionClass(NAME_FONTS, nameFont)} ${optionClass(NAME_COLORS, nameColor)} truncate`}>{displayName || "Seu nome"}</div>
+            <div className="font-mono text-xs neon-text-cyan">@{username || "usuario"} · {codename || "codinome"}</div>
+            <p className="mt-2 text-sm text-muted-foreground max-w-2xl whitespace-pre-wrap">{bio || "Sua descrição aparece aqui para outras pessoas verem."}</p>
+            <div className="mt-3 flex flex-wrap gap-2 text-[11px] font-mono">
+              <span className="glass px-2 py-1 rounded-full">{activityStatus || "online"}</span>
+              {currentGame && <span className="glass px-2 py-1 rounded-full">Jogando {currentGame}</span>}
+              {(profile?.created_at || user?.created_at) && <span className="glass px-2 py-1 rounded-full">Entrou em {new Date(profile?.created_at ?? user?.created_at ?? "").toLocaleDateString("pt-BR")}</span>}
+            </div>
+          </div>
+        </div>
+      </section>
 
       <section className="glass-strong rounded-2xl p-5 space-y-4">
         <h2 className="font-display text-lg flex items-center gap-2"><ImgIcon className="h-4 w-4" /> Foto & Nome</h2>
-        <div className="flex items-center gap-4">
+        <div className="flex items-start gap-4">
           <AvatarBubble url={avatarUrl} name={displayName} size={72} effect={profile?.equipped_effect ?? (isOwner ? "fx-owner-purple" : null)} />
           <div className="flex-1 space-y-2">
-            <input value={displayName} onChange={(e)=>setDisplayName(e.target.value)}
-              placeholder="Nome de exibição"
-              className="w-full glass px-3 py-2 rounded-lg text-sm font-mono" />
-            <input value={avatarUrl} onChange={(e)=>setAvatarUrl(e.target.value)}
-              placeholder="URL da foto (ou envie um arquivo abaixo)"
-              className="w-full glass px-3 py-2 rounded-lg text-sm font-mono" />
+            <div className="grid md:grid-cols-2 gap-2">
+              <input value={displayName} onChange={(e)=>setDisplayName(e.target.value)} placeholder="Nome de exibição" className="w-full glass px-3 py-2 rounded-lg text-sm font-mono" />
+              <input value={username} onChange={(e)=>setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))} placeholder="nome de usuário" className="w-full glass px-3 py-2 rounded-lg text-sm font-mono" />
+              <input value={codename} onChange={(e)=>setCodename(e.target.value)} placeholder="Codinome" className="w-full glass px-3 py-2 rounded-lg text-sm font-mono" />
+              <input value={avatarUrl} onChange={(e)=>setAvatarUrl(e.target.value)} placeholder="URL da foto (opcional)" className="w-full glass px-3 py-2 rounded-lg text-sm font-mono" />
+            </div>
+            <textarea value={bio} onChange={(e)=>setBio(e.target.value)} maxLength={240} rows={3} placeholder="Descrição do perfil" className="w-full glass px-3 py-2 rounded-lg text-sm font-mono resize-none" />
             <div
               onDragOver={(e)=>e.preventDefault()}
               onDrop={(e)=>{ e.preventDefault(); onPickAvatar(e.dataTransfer.files?.[0]); }}
@@ -134,6 +215,44 @@ function SettingsPage() {
         <button onClick={saveProfile} disabled={saving} className="btn-neon px-4 py-2 rounded-lg text-sm font-display flex items-center gap-2">
           <Save className="h-3 w-3" /> {saving ? "..." : "Salvar perfil"}
         </button>
+      </section>
+
+      <section className="glass-strong rounded-2xl p-5 space-y-4">
+        <h2 className="font-display text-lg flex items-center gap-2"><Activity className="h-4 w-4" /> Status, jogos e contatos</h2>
+        <div className="grid md:grid-cols-2 gap-3">
+          <input value={activityStatus} onChange={(e)=>setActivityStatus(e.target.value)} placeholder="Status: online, ocupado, assistindo..." className="glass px-3 py-2 rounded-lg text-sm font-mono" />
+          <input value={currentGame} onChange={(e)=>setCurrentGame(e.target.value)} placeholder="Jogo atual: ROBLOX, Valorant..." className="glass px-3 py-2 rounded-lg text-sm font-mono" />
+          <input value={favoriteGames} onChange={(e)=>setFavoriteGames(e.target.value)} placeholder="Jogos favoritos separados por vírgula" className="glass px-3 py-2 rounded-lg text-sm font-mono" />
+          <input value={mutualServers} onChange={(e)=>setMutualServers(e.target.value)} placeholder="Servidores mútuos separados por vírgula" className="glass px-3 py-2 rounded-lg text-sm font-mono" />
+          <input value={discordUsername} onChange={(e)=>setDiscordUsername(e.target.value)} placeholder="Discord" className="glass px-3 py-2 rounded-lg text-sm font-mono" />
+          <input value={whatsappNumber} onChange={(e)=>setWhatsappNumber(e.target.value)} placeholder="WhatsApp" className="glass px-3 py-2 rounded-lg text-sm font-mono" />
+        </div>
+      </section>
+
+      <section className="glass-strong rounded-2xl p-5 space-y-4">
+        <h2 className="font-display text-lg flex items-center gap-2"><Badge className="h-4 w-4" /> Estilo do perfil</h2>
+        <div className="grid md:grid-cols-3 gap-3">
+          <label className="text-xs font-mono text-muted-foreground space-y-1">Cor do nome
+            <select value={nameColor} onChange={(e)=>setNameColor(e.target.value)} className="w-full glass px-3 py-2 rounded-lg text-sm text-foreground">
+              {NAME_COLORS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
+          </label>
+          <label className="text-xs font-mono text-muted-foreground space-y-1">Fonte do nome
+            <select value={nameFont} onChange={(e)=>setNameFont(e.target.value)} className="w-full glass px-3 py-2 rounded-lg text-sm text-foreground">
+              {NAME_FONTS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
+          </label>
+          <label className="text-xs font-mono text-muted-foreground space-y-1">Tema do card
+            <select value={profileTheme} onChange={(e)=>setProfileTheme(e.target.value)} className="w-full glass px-3 py-2 rounded-lg text-sm text-foreground">
+              {PROFILE_THEMES.map((o) => <option key={o} value={o}>{o}</option>)}
+            </select>
+          </label>
+        </div>
+        <div className="flex flex-wrap gap-2 text-xs">
+          {(favoriteGames ? csvToArray(favoriteGames) : ["Roblox", "Valorant"]).map((game) => (
+            <span key={game} className="glass px-3 py-1.5 rounded-full flex items-center gap-1"><Gamepad2 className="h-3 w-3" /> {game}</span>
+          ))}
+        </div>
       </section>
 
       <section className="glass-strong rounded-2xl p-5 space-y-4">

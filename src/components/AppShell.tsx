@@ -28,6 +28,10 @@ const HUB_NAV_KEYS = [
   { to: "/premium", icon: Sparkles, key: "nav.premium" },
 ] as const;
 
+const COMMUNITY_NAV: NavItem[] = [
+  { to: "/friends", icon: Heart, label: "Amigos / DMs" },
+];
+
 const ACCOUNT_NAV: NavItem[] = [
   { to: "/settings", icon: Settings2, label: "Configurações" },
 ];
@@ -39,7 +43,6 @@ const DEV_NAV_KEYS = [
 
 const OWNER_TOOLS: NavItem[] = [
   { to: "/owner", icon: Crown, label: "Owner" },
-  { to: "/friends", icon: Heart, label: "Amigos / DMs" },
   { to: "/discord", icon: MessageSquare, label: "Discord Bot" },
   { to: "/nexus", icon: Terminal, label: "Nexus" },
   { to: "/hub", icon: Zap, label: "Hub" },
@@ -76,7 +79,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
         <nav className="space-y-4 flex-1 overflow-y-auto pr-1">
           <NavGroup label="Principal" path={path} items={MAIN_NAV_KEYS.map(i => ({ to: i.to, icon: i.icon, label: t(i.key) }))} />
-          <NavGroup label="Comunidade" path={path} items={HUB_NAV_KEYS.map(i => ({ to: i.to, icon: i.icon, label: t(i.key) }))} />
+          <NavGroup label="Comunidade" path={path} items={[...HUB_NAV_KEYS.map(i => ({ to: i.to, icon: i.icon, label: t(i.key) })), ...COMMUNITY_NAV]} />
           <NavGroup label="Conta" path={path} items={ACCOUNT_NAV} />
           {isOwner && (
             <NavGroup label="Dev" path={path} items={DEV_NAV_KEYS.map(i => ({ to: i.to, icon: i.icon, label: t(i.key) }))} />

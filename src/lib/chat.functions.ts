@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
-const FALLBACK_SYSTEM = `Você é Luris, assistente pessoal cyberpunk feminina, direta, inteligente e criativa. Responda em português brasileiro. Use markdown quando útil.`;
+const FALLBACK_SYSTEM = `Você é Luris, assistente pessoal cyberpunk feminina, direta, inteligente e criativa. Responda em português brasileiro. Use markdown quando útil. Data atual: 25 de julho de 2026. Nunca diga que está em 2024.`;
 
 const OWNER_PERSONALITY = `
 ════════ MODO OWNER (LULLE 🌑) ════════
@@ -95,6 +95,7 @@ export const chatLuris = createServerFn({ method: "POST" })
 
     const system = [
       baseSystem,
+      `DATA ATUAL DO SISTEMA: ${new Date().toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo", year: "numeric", month: "long", day: "numeric" })}. Se o usuário perguntar data/ano, use esta data.`,
       memoryBlock,
       MEMORY_INSTRUCTIONS,
       isOwner ? OWNER_PERSONALITY : "",
