@@ -178,6 +178,39 @@ export type Database = {
           },
         ]
       }
+      chat_backgrounds: {
+        Row: {
+          conversation_id: string | null
+          created_at: string
+          id: string
+          mode: string
+          name: string
+          updated_at: string
+          user_id: string
+          value: string
+        }
+        Insert: {
+          conversation_id?: string | null
+          created_at?: string
+          id?: string
+          mode?: string
+          name?: string
+          updated_at?: string
+          user_id: string
+          value: string
+        }
+        Update: {
+          conversation_id?: string | null
+          created_at?: string
+          id?: string
+          mode?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+          value?: string
+        }
+        Relationships: []
+      }
       clan_members: {
         Row: {
           clan_id: string
@@ -311,6 +344,9 @@ export type Database = {
       }
       direct_messages: {
         Row: {
+          attachment_type: string | null
+          attachment_url: string | null
+          channel: string
           content: string
           created_at: string
           id: string
@@ -319,6 +355,9 @@ export type Database = {
           sender_id: string
         }
         Insert: {
+          attachment_type?: string | null
+          attachment_url?: string | null
+          channel?: string
           content: string
           created_at?: string
           id?: string
@@ -327,6 +366,9 @@ export type Database = {
           sender_id: string
         }
         Update: {
+          attachment_type?: string | null
+          attachment_url?: string | null
+          channel?: string
           content?: string
           created_at?: string
           id?: string
@@ -737,47 +779,77 @@ export type Database = {
       profiles: {
         Row: {
           account_id: string | null
+          activity_status: string
           avatar_url: string | null
           bio: string | null
+          codename: string | null
           coins: number
           created_at: string
+          current_game: string
+          discord_username: string | null
           display_name: string | null
           equipped_effect: string | null
+          favorite_games: string[]
           id: string
           is_verified: boolean
           level: number
+          mutual_servers: string[]
+          name_color: string
+          name_font: string
+          profile_theme: string
           updated_at: string
           username: string | null
+          whatsapp_number: string | null
           xp: number
         }
         Insert: {
           account_id?: string | null
+          activity_status?: string
           avatar_url?: string | null
           bio?: string | null
+          codename?: string | null
           coins?: number
           created_at?: string
+          current_game?: string
+          discord_username?: string | null
           display_name?: string | null
           equipped_effect?: string | null
+          favorite_games?: string[]
           id: string
           is_verified?: boolean
           level?: number
+          mutual_servers?: string[]
+          name_color?: string
+          name_font?: string
+          profile_theme?: string
           updated_at?: string
           username?: string | null
+          whatsapp_number?: string | null
           xp?: number
         }
         Update: {
           account_id?: string | null
+          activity_status?: string
           avatar_url?: string | null
           bio?: string | null
+          codename?: string | null
           coins?: number
           created_at?: string
+          current_game?: string
+          discord_username?: string | null
           display_name?: string | null
           equipped_effect?: string | null
+          favorite_games?: string[]
           id?: string
           is_verified?: boolean
           level?: number
+          mutual_servers?: string[]
+          name_color?: string
+          name_font?: string
+          profile_theme?: string
           updated_at?: string
           username?: string | null
+          whatsapp_number?: string | null
           xp?: number
         }
         Relationships: []
