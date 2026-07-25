@@ -44,6 +44,11 @@ function extractFxTag(tags: string[] | null): string | null {
   return tags?.find((t) => t.startsWith("fx-")) ?? null;
 }
 
+function extractStyleTag(tags: string[] | null, prefix: string): string | null {
+  const tag = tags?.find((t) => t.startsWith(prefix));
+  return tag ? tag.slice(prefix.length) : null;
+}
+
 function Market() {
   const { user, isOwner, profile } = useAuth();
   const { formatCoins } = useI18n();
