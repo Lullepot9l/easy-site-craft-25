@@ -22,11 +22,12 @@ interface Item {
   approved: boolean;
   downloads: number;
   tags: string[] | null;
+  content: string | null;
   created_at: string;
 }
 
-const TYPES = ["avatar_effect", "script", "imagem", "template", "asset", "plugin", "outro"];
-const CATEGORIES = ["Avatar Effects", "Scripts", "Templates", "Assets", "Plugins", "VIP", "LuCoins", "Outros"];
+const TYPES = ["avatar_effect", "chat_background", "name_style", "name_font", "profile_theme", "script", "imagem", "template", "asset", "plugin", "outro"];
+const CATEGORIES = ["Avatar Effects", "Fundos de Chat", "Perfil", "Scripts", "Templates", "Assets", "Plugins", "VIP", "LuCoins", "Outros"];
 
 const FX_LABEL: Record<string, string> = {
   "fx-rainbow": "Aura Arco-Íris", "fx-halo": "Halo Dourado", "fx-flame": "Chamas Néon",
@@ -36,6 +37,7 @@ const FX_LABEL: Record<string, string> = {
   "fx-neon-green": "Neon Verde", "fx-blueflame": "Fogo Azul", "fx-void": "Vazio",
   "fx-crystal": "Cristal", "fx-circuit": "Cyber Circuit", "fx-sakura": "Sakura",
   "fx-toxic": "Tóxico", "fx-aurora": "Aurora", "fx-blood": "Sangue", "fx-liquid-gold": "Ouro Líquido",
+  "fx-nightberry": "Aura Nightberry", "fx-owner-purple": "Owner Roxo",
 };
 
 function extractFxTag(tags: string[] | null): string | null {
@@ -134,11 +136,28 @@ function Market() {
   async function equip(it: Item) {
     if (!user) return;
     const fx = extractFxTag(it.tags);
-    if (!fx) return toast.error("Esse item não é um efeito equipável.");
-    if (fx === "fx-owner" && !isOwner) return toast.error("Efeito exclusivo Owner 👑");
-    const { error } = await supabase.from("profiles").update({ equipped_effect: fx }).eq("id", user.id);
+    let patch: Record<string, string | null> | null = null;
+    let label = it.title;
+    if (it.item_type === "avatar_effect" && fx) {
+      if ((fx === "fx-owner" || fx === "fx-owner-purple") && !isOwner) return toast.error("Efeito exclusivo Owner 👑");
+      patch = { equipped_effect: fx };
+      label = FX_LABEL[fx] ?? fx;
+    } else if (it.item_type === "name_style") {
+      patch = { name_color: it.content ?? extractStyleTag(it.tags, "name-") ?? "gradient" };
+    } else if (it.item_type === "name_font") {
+      patch = { name_font: it.content ?? extractStyleTag(it.tags, "font-") ?? "nightberry" };
+    } else if (it.item_type === "profile_theme") {
+      patch = { profile_theme: it.content ?? extractStyleTag(it.tags, "theme-") ?? "nightberry" };
+    } else if (it.item_type === "chat_background") {
+      const value = it.content ?? it.image_url ?? "oklch(0.18 0.12 295)";
+      localStorage.setItem("luris.chat.bg", JSON.stringify({ mode: value.startsWith("http") || value.startsWith("data:") ? "image" : "color", value, scope: "all" }));
+      toast.success(`Fundo ${it.title} aplicado nas conversas!`);
+      return;
+    }
+    if (!patch) return toast.error("Esse item ainda não é equipável.");
+    const { error } = await supabase.from("profiles").update({ ...patch, updated_at: new Date().toISOString() }).eq("id", user.id);
     if (error) return toast.error(error.message);
-    toast.success(`Efeito ${FX_LABEL[fx] ?? fx} equipado!`);
+    toast.success(`${label} equipado!`);
     window.location.reload();
   }
 
@@ -199,7 +218,8 @@ function Market() {
         {filtered.map((it) => {
           const fx = extractFxTag(it.tags);
           const owned = inventory.has(it.id);
-          const isEquipped = fx && fx === equippedFx;
+          const isCosmetic = ["avatar_effect", "chat_background", "name_style", "name_font", "profile_theme"].includes(it.item_type);
+          const isEquipped = Boolean(fx && fx === equippedFx);
           return (
             <div key={it.id} className="glass p-4 rounded-xl hover-lift relative group">
               {!it.approved && <span className="absolute top-2 right-2 text-[10px] font-mono px-2 py-0.5 rounded bg-[oklch(0.4_0.2_60/0.4)] text-[oklch(0.85_0.18_80)]">pendente</span>}
@@ -208,6 +228,15 @@ function Market() {
               {fx ? (
                 <div className="aspect-video rounded-lg mb-3 bg-gradient-to-br from-[oklch(0.18_0.15_295)] to-[oklch(0.15_0.2_330)] flex items-center justify-center">
                   <AvatarBubble name="L" size={80} effect={fx} />
+                </div>
+              ) : it.item_type === "chat_background" ? (
+                <div className="aspect-video rounded-lg overflow-hidden mb-3 flex items-center justify-center text-sm font-display"
+                  style={it.content?.startsWith("http") || it.image_url ? { backgroundImage: `linear-gradient(oklch(0.08 0.04 285 / 0.25), oklch(0.08 0.04 285 / 0.65)), url(${it.content?.startsWith("http") ? it.content : it.image_url})`, backgroundSize: "cover", backgroundPosition: "center" } : { background: it.content ?? "oklch(0.18 0.12 295)" }}>
+                  Fundo de conversa
+                </div>
+              ) : it.item_type === "name_style" || it.item_type === "name_font" || it.item_type === "profile_theme" ? (
+                <div className="aspect-video rounded-lg mb-3 bg-gradient-to-br from-[oklch(0.18_0.1_295)] to-[oklch(0.12_0.1_330)] flex items-center justify-center">
+                  <div className={`${it.item_type === "name_font" ? "font-nightberry" : "font-display"} ${it.item_type === "name_style" ? "gradient-text" : "neon-text-magenta"} text-2xl`}>Luris</div>
                 </div>
               ) : (
                 <div className="aspect-video rounded-lg overflow-hidden mb-3 bg-gradient-to-br from-[oklch(0.3_0.25_295)] to-[oklch(0.3_0.3_330)] flex items-center justify-center text-4xl">
@@ -231,12 +260,12 @@ function Market() {
                     <button onClick={() => remove(it)} className="glass p-1.5 rounded text-[oklch(0.7_0.25_25)]"><Trash2 className="h-3 w-3" /></button>
                   )}
 
-                  {owned && fx && (
+                  {owned && isCosmetic && (
                     isEquipped
                       ? <span className="glass px-2 py-1 rounded-md text-[10px] font-mono flex items-center gap-1 neon-text-cyan"><Check className="h-3 w-3" />equipado</span>
                       : <button onClick={() => equip(it)} className="btn-neon px-3 py-1 rounded-md text-xs font-display flex items-center gap-1"><Sparkles className="h-3 w-3" /> Equipar</button>
                   )}
-                  {owned && !fx && <span className="glass px-2 py-1 rounded-md text-[10px] font-mono">✓ comprado</span>}
+                  {owned && !isCosmetic && <span className="glass px-2 py-1 rounded-md text-[10px] font-mono">✓ comprado</span>}
                   {!owned && <button onClick={() => buy(it)} className="btn-neon px-3 py-1 rounded-md text-xs font-display">Comprar</button>}
                 </div>
               </div>
