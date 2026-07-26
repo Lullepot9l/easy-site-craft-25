@@ -184,7 +184,7 @@ function SettingsPage() {
             <div className="font-mono text-xs neon-text-cyan">@{username || "usuario"} · {codename || "codinome"}</div>
             <p className="mt-2 text-sm text-muted-foreground max-w-2xl whitespace-pre-wrap">{bio || "Sua descrição aparece aqui para outras pessoas verem."}</p>
             <div className="mt-3 flex flex-wrap gap-2 text-[11px] font-mono">
-              <span className="glass px-2 py-1 rounded-full">{activityStatus || "online"}</span>
+              <span className="glass px-2 py-1 rounded-full">{statusMeta(activityStatus).label}</span>
               {currentGame && <span className="glass px-2 py-1 rounded-full">Jogando {currentGame}</span>}
               {(profile?.created_at || user?.created_at) && <span className="glass px-2 py-1 rounded-full">Entrou em {new Date(profile?.created_at ?? user?.created_at ?? "").toLocaleDateString("pt-BR")}</span>}
             </div>
