@@ -69,9 +69,9 @@ export const chatLuris = createServerFn({ method: "POST" })
     z.object({
       messages: z.array(z.object({
         role: z.enum(["user", "assistant", "system"]),
-        content: z.string().min(1).max(8000),
-        images: z.array(z.string().url().or(z.string().startsWith("data:"))).max(4).optional(),
-      })).min(1).max(50),
+        content: z.string().min(1).max(32000),
+        images: z.array(z.string().url().or(z.string().startsWith("data:"))).max(10).optional(),
+      })).min(1).max(400),
     }).parse(input)
   )
 
@@ -81,7 +81,7 @@ export const chatLuris = createServerFn({ method: "POST" })
 
     const [{ data: settings }, { data: memRows }, { data: isOwnerRow }] = await Promise.all([
       context.supabase.from("luris_settings").select("system_prompt").eq("id", 1).maybeSingle(),
-      context.supabase.from("user_memory").select("memory_key, memory_value").eq("user_id", context.userId).order("updated_at", { ascending: false }).limit(60),
+      context.supabase.from("user_memory").select("memory_key, memory_value").eq("user_id", context.userId).order("updated_at", { ascending: false }).limit(200),
       context.supabase.rpc("has_role", { _user_id: context.userId, _role: "owner" }),
     ]);
 
@@ -126,8 +126,8 @@ export const chatLuris = createServerFn({ method: "POST" })
       }),
     });
 
-    if (res.status === 429) return { error: "Limite de requisições atingido. Aguarde um momento.", content: "" };
-    if (res.status === 402) return { error: "Créditos de IA esgotados. Adicione créditos no workspace.", content: "" };
+    if (res.status === 429) return { error: "A IA está recebendo muitas mensagens ao mesmo tempo. Manda de novo em alguns segundos.", content: "" };
+    if (res.status === 402) return { error: "A cota de IA do workspace zerou por hoje (isso é do plano Lovable, não do seu perfil). Ela volta no próximo ciclo — LuCoins do app não têm nada a ver com isso.", content: "" };
     if (!res.ok) return { error: `Erro ${res.status}`, content: "" };
 
     const json = await res.json() as { choices?: Array<{ message?: { content?: string } }> };

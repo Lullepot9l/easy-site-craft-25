@@ -18,6 +18,7 @@ import { Route as AuthenticatedSocialRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedScriptforgeRouteImport } from './routes/_authenticated/scriptforge'
 import { Route as AuthenticatedRobloxRouteImport } from './routes/_authenticated/roblox'
+import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedPremiumRouteImport } from './routes/_authenticated/premium'
 import { Route as AuthenticatedPhase7RouteImport } from './routes/_authenticated/phase7'
 import { Route as AuthenticatedPhase6RouteImport } from './routes/_authenticated/phase6'
@@ -84,6 +85,11 @@ const AuthenticatedScriptforgeRoute =
 const AuthenticatedRobloxRoute = AuthenticatedRobloxRouteImport.update({
   id: '/roblox',
   path: '/roblox',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedPremiumRoute = AuthenticatedPremiumRouteImport.update({
@@ -222,6 +228,7 @@ export interface FileRoutesByFullPath {
   '/phase6': typeof AuthenticatedPhase6Route
   '/phase7': typeof AuthenticatedPhase7Route
   '/premium': typeof AuthenticatedPremiumRoute
+  '/profile': typeof AuthenticatedProfileRoute
   '/roblox': typeof AuthenticatedRobloxRoute
   '/scriptforge': typeof AuthenticatedScriptforgeRoute
   '/settings': typeof AuthenticatedSettingsRoute
@@ -254,6 +261,7 @@ export interface FileRoutesByTo {
   '/phase6': typeof AuthenticatedPhase6Route
   '/phase7': typeof AuthenticatedPhase7Route
   '/premium': typeof AuthenticatedPremiumRoute
+  '/profile': typeof AuthenticatedProfileRoute
   '/roblox': typeof AuthenticatedRobloxRoute
   '/scriptforge': typeof AuthenticatedScriptforgeRoute
   '/settings': typeof AuthenticatedSettingsRoute
@@ -288,6 +296,7 @@ export interface FileRoutesById {
   '/_authenticated/phase6': typeof AuthenticatedPhase6Route
   '/_authenticated/phase7': typeof AuthenticatedPhase7Route
   '/_authenticated/premium': typeof AuthenticatedPremiumRoute
+  '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/roblox': typeof AuthenticatedRobloxRoute
   '/_authenticated/scriptforge': typeof AuthenticatedScriptforgeRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
@@ -322,6 +331,7 @@ export interface FileRouteTypes {
     | '/phase6'
     | '/phase7'
     | '/premium'
+    | '/profile'
     | '/roblox'
     | '/scriptforge'
     | '/settings'
@@ -354,6 +364,7 @@ export interface FileRouteTypes {
     | '/phase6'
     | '/phase7'
     | '/premium'
+    | '/profile'
     | '/roblox'
     | '/scriptforge'
     | '/settings'
@@ -387,6 +398,7 @@ export interface FileRouteTypes {
     | '/_authenticated/phase6'
     | '/_authenticated/phase7'
     | '/_authenticated/premium'
+    | '/_authenticated/profile'
     | '/_authenticated/roblox'
     | '/_authenticated/scriptforge'
     | '/_authenticated/settings'
@@ -471,6 +483,13 @@ declare module '@tanstack/react-router' {
       path: '/roblox'
       fullPath: '/roblox'
       preLoaderRoute: typeof AuthenticatedRobloxRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/profile': {
+      id: '/_authenticated/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AuthenticatedProfileRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/premium': {
@@ -649,6 +668,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedPhase6Route: typeof AuthenticatedPhase6Route
   AuthenticatedPhase7Route: typeof AuthenticatedPhase7Route
   AuthenticatedPremiumRoute: typeof AuthenticatedPremiumRoute
+  AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedRobloxRoute: typeof AuthenticatedRobloxRoute
   AuthenticatedScriptforgeRoute: typeof AuthenticatedScriptforgeRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
@@ -674,6 +694,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedPhase6Route: AuthenticatedPhase6Route,
   AuthenticatedPhase7Route: AuthenticatedPhase7Route,
   AuthenticatedPremiumRoute: AuthenticatedPremiumRoute,
+  AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedRobloxRoute: AuthenticatedRobloxRoute,
   AuthenticatedScriptforgeRoute: AuthenticatedScriptforgeRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,

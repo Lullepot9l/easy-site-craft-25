@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useI18n } from "@/lib/i18n";
 import { AvatarBubble } from "@/components/AvatarBubble";
+import { NAME_COLORS, NAME_FONTS, optionClass } from "@/lib/profile-style";
 
 export const Route = createFileRoute("/_authenticated/marketplace")({ component: Market });
 
@@ -38,6 +39,8 @@ const FX_LABEL: Record<string, string> = {
   "fx-crystal": "Cristal", "fx-circuit": "Cyber Circuit", "fx-sakura": "Sakura",
   "fx-toxic": "Tóxico", "fx-aurora": "Aurora", "fx-blood": "Sangue", "fx-liquid-gold": "Ouro Líquido",
   "fx-nightberry": "Aura Nightberry", "fx-owner-purple": "Owner Roxo",
+  "fx-glitch": "Aura Glitch", "fx-solar": "Aura Solar", "fx-emerald": "Aura Esmeralda",
+  "fx-cyberpink": "Aura Cyber Pink", "fx-moon": "Aura Lua",
 };
 
 function extractFxTag(tags: string[] | null): string | null {
@@ -70,7 +73,7 @@ function Market() {
 
   async function load() {
     const { data } = await supabase.from("marketplace_items")
-      .select("*").order("is_featured", { ascending: false }).order("created_at", { ascending: false }).limit(120);
+      .select("*").order("is_featured", { ascending: false }).order("created_at", { ascending: false }).limit(500);
     setItems((data ?? []) as Item[]);
     if (user) {
       const { data: inv } = await supabase.from("user_inventory").select("item_id").eq("user_id", user.id);
@@ -240,8 +243,12 @@ function Market() {
                   Fundo de conversa
                 </div>
               ) : it.item_type === "name_style" || it.item_type === "name_font" || it.item_type === "profile_theme" ? (
-                <div className="aspect-video rounded-lg mb-3 bg-gradient-to-br from-[oklch(0.18_0.1_295)] to-[oklch(0.12_0.1_330)] flex items-center justify-center">
-                  <div className={`${it.item_type === "name_font" ? "font-nightberry" : "font-display"} ${it.item_type === "name_style" ? "gradient-text" : "neon-text-magenta"} text-2xl`}>Luris</div>
+                <div className={`aspect-video rounded-lg mb-3 flex items-center justify-center ${it.item_type === "profile_theme" ? `profile-theme-${it.content ?? "neon"}` : "bg-gradient-to-br from-[oklch(0.18_0.1_295)] to-[oklch(0.12_0.1_330)]"}`}>
+                  <div className={`text-3xl ${
+                    it.item_type === "name_font" ? optionClass(NAME_FONTS, it.content) : "font-display"
+                  } ${
+                    it.item_type === "name_style" ? optionClass(NAME_COLORS, it.content) : "gradient-text"
+                  }`}>Luris</div>
                 </div>
               ) : (
                 <div className="aspect-video rounded-lg overflow-hidden mb-3 bg-gradient-to-br from-[oklch(0.3_0.25_295)] to-[oklch(0.3_0.3_330)] flex items-center justify-center text-4xl">

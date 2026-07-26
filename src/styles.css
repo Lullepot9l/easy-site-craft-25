@@ -258,8 +258,12 @@
 
 /* ======= AVATAR EFFECTS (marketplace) ======= */
 @layer utilities {
-  .fx-wrap { position: relative; display: inline-flex; align-items: center; justify-content: center; border-radius: 9999px; aspect-ratio: 1 / 1; flex: 0 0 auto; }
+  .fx-wrap { position: relative; display: inline-flex; align-items: center; justify-content: center; border-radius: 9999px; aspect-ratio: 1 / 1; flex: 0 0 auto; isolation: isolate; }
   .fx-wrap::before, .fx-wrap::after { content: ""; position: absolute; inset: -4px; border-radius: 9999px; pointer-events: none; }
+  /* A aura NUNCA pinta a foto: brilho fica atrás (z-index 0) e o anel na borda (z-index 3). */
+  .fx-wrap::after { z-index: 0; }
+  .fx-wrap::before { z-index: 3; }
+  .fx-wrap > img, .fx-wrap > span, .fx-wrap > svg { position: relative; z-index: 2; }
 
   @keyframes fx-hue { to { filter: hue-rotate(360deg); } }
   .fx-rainbow::before {
@@ -313,8 +317,8 @@
     filter: drop-shadow(0 0 10px #8a2be2);
   }
 
-  @keyframes fx-holo-shift { 0%,100% { filter: hue-rotate(0deg) saturate(1.3); } 50% { filter: hue-rotate(180deg) saturate(1.6); } }
-  .fx-hologram { animation: fx-holo-shift 2.4s ease-in-out infinite; border: 2px solid #00ffe5; box-shadow: 0 0 18px #00ffe5, inset 0 0 8px #ff00d4; }
+  @keyframes fx-holo-shift { 0%,100% { box-shadow: 0 0 14px #00ffe5, 0 0 26px #ff00d4; border-color: #00ffe5; } 50% { box-shadow: 0 0 24px #ff00d4, 0 0 40px #00ffe5; border-color: #ff00d4; } }
+  .fx-hologram { animation: fx-holo-shift 2.4s ease-in-out infinite; border: 2px solid #00ffe5; }
 
   @keyframes fx-shine-move { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
   .fx-shine {
@@ -348,7 +352,7 @@
   @keyframes fx-blueflame-pulse { 0%,100% { box-shadow: 0 0 12px #00a2ff, 0 0 26px #0055ff; } 50% { box-shadow: 0 0 24px #7dd3ff, 0 0 40px #00a2ff; } }
   .fx-blueflame { animation: fx-blueflame-pulse 1.2s ease-in-out infinite; border: 2px solid #00a2ff; }
 
-  .fx-void { border: 2px solid #000; box-shadow: 0 0 26px #000, inset 0 0 22px #000; filter: contrast(1.15) brightness(0.9); }
+  .fx-void { border: 2px solid #14001f; box-shadow: 0 0 26px #000, 0 0 44px oklch(0.2 0.15 300 / 0.6); }
 
   .fx-crystal::before {
     background: conic-gradient(from 0deg, #a0f5ff, #fff, #d8b4fe, #a0f5ff, #fff);
@@ -442,6 +446,54 @@
   .profile-theme-nightberry { background: linear-gradient(135deg, oklch(0.22 0.12 302 / 0.78), oklch(0.14 0.09 330 / 0.62)); box-shadow: 0 0 34px oklch(0.72 0.27 320 / 0.32); }
   .profile-theme-sakura { background: linear-gradient(135deg, oklch(0.23 0.1 345 / 0.76), oklch(0.15 0.07 310 / 0.62)); box-shadow: 0 0 34px oklch(0.8 0.2 350 / 0.3); }
   .profile-theme-galaxy { background: linear-gradient(135deg, oklch(0.16 0.12 260 / 0.78), oklch(0.1 0.08 300 / 0.66)); box-shadow: 0 0 34px oklch(0.62 0.25 270 / 0.34); }
+  .profile-theme-cyber { background: linear-gradient(135deg, oklch(0.18 0.11 200 / 0.78), oklch(0.12 0.09 260 / 0.66)); box-shadow: 0 0 34px oklch(0.7 0.2 200 / 0.32); }
+  .profile-theme-gold { background: linear-gradient(135deg, oklch(0.24 0.09 85 / 0.72), oklch(0.14 0.05 60 / 0.66)); box-shadow: 0 0 34px oklch(0.8 0.16 85 / 0.32); }
+  .profile-theme-blood { background: linear-gradient(135deg, oklch(0.2 0.14 20 / 0.78), oklch(0.11 0.08 350 / 0.66)); box-shadow: 0 0 34px oklch(0.6 0.24 22 / 0.34); }
+  .profile-theme-mint { background: linear-gradient(135deg, oklch(0.22 0.1 165 / 0.74), oklch(0.13 0.07 200 / 0.64)); box-shadow: 0 0 34px oklch(0.75 0.18 165 / 0.3); }
+
+  /* ===== Novas auras ===== */
+  @keyframes fx-glitch-shift { 0%,100% { box-shadow: -3px 0 0 #00fff2, 3px 0 0 #ff00a0; } 50% { box-shadow: 3px 0 0 #00fff2, -3px 0 0 #ff00a0; } }
+  .fx-glitch { border: 2px solid #fff; animation: fx-glitch-shift 0.35s steps(2) infinite; }
+
+  .fx-solar::before {
+    background: conic-gradient(from 0deg, #ff9500, #fff3b0, #ff4d00, #ffcc00, #ff9500);
+    padding: 3px; -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude; animation: fx-spin 3.5s linear infinite;
+    filter: drop-shadow(0 0 12px #ff9500);
+  }
+  .fx-emerald::before {
+    background: conic-gradient(from 0deg, #00ffa3, #b6ffd9, #009e63, #00ffa3);
+    padding: 3px; -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude; animation: fx-spin 6s linear infinite;
+    filter: drop-shadow(0 0 10px #00ffa3);
+  }
+  .fx-cyberpink::before {
+    background: conic-gradient(from 0deg, #ff2fb9, #fff, #7a00ff, #ff2fb9);
+    padding: 3px; -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude; animation: fx-spin 4.5s linear infinite;
+    filter: drop-shadow(0 0 12px #ff2fb9);
+  }
+  @keyframes fx-moon-glow { 0%,100% { box-shadow: 0 0 14px #cfe6ff, 0 0 28px #8ea9ff; } 50% { box-shadow: 0 0 24px #eef6ff, 0 0 44px #7f9cff; } }
+  .fx-moon { border: 2px solid #cfe6ff; animation: fx-moon-glow 2.8s ease-in-out infinite; }
+
+  /* ===== Fontes/cores de nome ===== */
+  .font-audiowide { font-family: 'Audiowide', var(--font-display); }
+  .font-cinzel { font-family: 'Cinzel', Georgia, serif; font-weight: 700; }
+  .font-pacifico { font-family: 'Pacifico', cursive; }
+  .font-vibes { font-family: 'Great Vibes', cursive; }
+  .font-press { font-family: 'Press Start 2P', var(--font-mono); }
+  .font-unica { font-family: 'Unica One', var(--font-display); letter-spacing: 0.06em; }
+
+  @keyframes name-rainbow { to { background-position: 200% center; } }
+  .name-rainbow {
+    background: linear-gradient(90deg, #ff0080, #ffcc00, #00ff88, #00c8ff, #a855f7, #ff0080);
+    background-size: 200% auto; -webkit-background-clip: text; background-clip: text; color: transparent;
+    animation: name-rainbow 4s linear infinite;
+  }
+  .name-gold { background: linear-gradient(90deg, #d4a017, #fff3b0, #d4a017); -webkit-background-clip: text; background-clip: text; color: transparent; text-shadow: 0 0 18px oklch(0.8 0.16 85 / 0.35); }
+  .name-blood { color: #ff2d55; text-shadow: 0 0 12px #b30000, 0 0 24px #ff0033; }
+  .name-ice { color: #d7f4ff; text-shadow: 0 0 12px #7fd6ff, 0 0 26px #35a7ff; }
+  .name-toxic { color: #b6ff3d; text-shadow: 0 0 12px #7fff00, 0 0 24px #39ff14; }
 }
 
 

@@ -113,7 +113,7 @@ function ChatPage() {
 
 
   const loadConvs = useCallback(async () => {
-    const { data } = await supabase.from("conversations").select("id, title, updated_at").order("updated_at", { ascending: false }).limit(30);
+    const { data } = await supabase.from("conversations").select("id, title, updated_at").order("updated_at", { ascending: false }).limit(200);
     setConvs((data ?? []) as Conv[]);
   }, []);
   useEffect(() => { if (user) loadConvs(); }, [user, loadConvs]);

@@ -4,7 +4,11 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { AvatarBubble } from "@/components/AvatarBubble";
-import { Activity, Badge, Gamepad2, Image as ImgIcon, Palette, Save, RotateCcw, Upload } from "lucide-react";
+import { Activity, Badge, Gamepad2, Image as ImgIcon, Palette, Save, RotateCcw, Upload, RefreshCw } from "lucide-react";
+import {
+  ACTIVITY_STATUS, GAME_CATALOG, NAME_COLORS, NAME_FONTS, PROFILE_THEMES,
+  detectCurrentGame, hasDesktopBridge, optionClass, statusMeta,
+} from "@/lib/profile-style";
 
 export const Route = createFileRoute("/_authenticated/settings")({ component: SettingsPage });
 
@@ -13,28 +17,8 @@ const BG_MAP_KEY = "luris.chat.bg.map"; // JSON: Record<convId, {mode,value}>
 
 type BgCfg = { mode: "color" | "image"; value: string };
 
-const NAME_COLORS = [
-  { value: "gradient", label: "Gradiente Luris", className: "gradient-text" },
-  { value: "magenta", label: "Magenta", className: "neon-text-magenta" },
-  { value: "cyan", label: "Ciano", className: "neon-text-cyan" },
-  { value: "soft", label: "Suave", className: "text-[oklch(0.96_0.02_295)]" },
-] as const;
-
-const NAME_FONTS = [
-  { value: "display", label: "Cyber", className: "font-display" },
-  { value: "mono", label: "Mono", className: "font-mono" },
-  { value: "soft", label: "Soft", className: "font-body" },
-  { value: "nightberry", label: "Nightberry", className: "font-nightberry" },
-] as const;
-
-const PROFILE_THEMES = ["neon", "nightberry", "sakura", "galaxy"] as const;
-
 function csvToArray(value: string) {
   return value.split(",").map((v) => v.trim()).filter(Boolean).slice(0, 8);
-}
-
-function optionClass<T extends readonly { value: string; className: string }[]>(options: T, value?: string | null) {
-  return options.find((o) => o.value === value)?.className ?? options[0].className;
 }
 
 const PRESETS: BgCfg[] = [
@@ -67,8 +51,28 @@ function SettingsPage() {
   const [scope, setScope] = useState<"all" | "single">("all");
   const [bg, setBg] = useState<BgCfg>({ mode: "color", value: "oklch(0.15 0.05 285)" });
   const [saving, setSaving] = useState(false);
+  const [detecting, setDetecting] = useState(false);
   const avatarFileRef = useRef<HTMLInputElement>(null);
   const bgFileRef = useRef<HTMLInputElement>(null);
+
+  function toggleFavGame(game: string) {
+    const list = csvToArray(favoriteGames);
+    const next = list.includes(game) ? list.filter((g) => g !== game) : [...list, game].slice(0, 8);
+    setFavoriteGames(next.join(", "));
+  }
+
+  async function autoDetectGame() {
+    if (!hasDesktopBridge()) {
+      toast.info("Detecção automática só no Luris Desktop (Windows). Escolhe na lista por enquanto.");
+      return;
+    }
+    setDetecting(true);
+    try {
+      const game = await detectCurrentGame();
+      if (game) { setCurrentGame(game); toast.success(`Detectado: ${game}`); }
+      else toast("Nenhum jogo aberto detectado");
+    } finally { setDetecting(false); }
+  }
 
   function readFileAsDataURL(file: File, maxMB: number): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -120,6 +124,21 @@ function SettingsPage() {
       if (raw) { const parsed = JSON.parse(raw); if (parsed?.mode) setBg({ mode: parsed.mode, value: parsed.value }); }
     } catch { /* noop */ }
   }, []);
+
+  // No Luris Desktop o jogo aberto no PC é detectado e salvo sozinho.
+  useEffect(() => {
+    if (!user || !hasDesktopBridge()) return;
+    let stop = false;
+    async function tick() {
+      const game = await detectCurrentGame();
+      if (stop || game === null) return;
+      setCurrentGame(game);
+      await supabase.from("profiles").update({ current_game: game, updated_at: new Date().toISOString() }).eq("id", user!.id);
+    }
+    tick();
+    const id = setInterval(tick, 60_000);
+    return () => { stop = true; clearInterval(id); };
+  }, [user?.id]);
 
   async function saveProfile() {
     if (!user) return;
@@ -180,7 +199,7 @@ function SettingsPage() {
             <div className="font-mono text-xs neon-text-cyan">@{username || "usuario"} · {codename || "codinome"}</div>
             <p className="mt-2 text-sm text-muted-foreground max-w-2xl whitespace-pre-wrap">{bio || "Sua descrição aparece aqui para outras pessoas verem."}</p>
             <div className="mt-3 flex flex-wrap gap-2 text-[11px] font-mono">
-              <span className="glass px-2 py-1 rounded-full">{activityStatus || "online"}</span>
+              <span className="glass px-2 py-1 rounded-full">{statusMeta(activityStatus).label}</span>
               {currentGame && <span className="glass px-2 py-1 rounded-full">Jogando {currentGame}</span>}
               {(profile?.created_at || user?.created_at) && <span className="glass px-2 py-1 rounded-full">Entrou em {new Date(profile?.created_at ?? user?.created_at ?? "").toLocaleDateString("pt-BR")}</span>}
             </div>
@@ -199,7 +218,7 @@ function SettingsPage() {
               <input value={codename} onChange={(e)=>setCodename(e.target.value)} placeholder="Codinome" className="w-full glass px-3 py-2 rounded-lg text-sm font-mono" />
               <input value={avatarUrl} onChange={(e)=>setAvatarUrl(e.target.value)} placeholder="URL da foto (opcional)" className="w-full glass px-3 py-2 rounded-lg text-sm font-mono" />
             </div>
-            <textarea value={bio} onChange={(e)=>setBio(e.target.value)} maxLength={240} rows={3} placeholder="Descrição do perfil" className="w-full glass px-3 py-2 rounded-lg text-sm font-mono resize-none" />
+            <textarea value={bio} onChange={(e)=>setBio(e.target.value)} maxLength={600} rows={3} placeholder="Descrição do perfil" className="w-full glass px-3 py-2 rounded-lg text-sm font-mono resize-none" />
             <div
               onDragOver={(e)=>e.preventDefault()}
               onDrop={(e)=>{ e.preventDefault(); onPickAvatar(e.dataTransfer.files?.[0]); }}
@@ -220,13 +239,52 @@ function SettingsPage() {
       <section className="glass-strong rounded-2xl p-5 space-y-4">
         <h2 className="font-display text-lg flex items-center gap-2"><Activity className="h-4 w-4" /> Status, jogos e contatos</h2>
         <div className="grid md:grid-cols-2 gap-3">
-          <input value={activityStatus} onChange={(e)=>setActivityStatus(e.target.value)} placeholder="Status: online, ocupado, assistindo..." className="glass px-3 py-2 rounded-lg text-sm font-mono" />
-          <input value={currentGame} onChange={(e)=>setCurrentGame(e.target.value)} placeholder="Jogo atual: ROBLOX, Valorant..." className="glass px-3 py-2 rounded-lg text-sm font-mono" />
-          <input value={favoriteGames} onChange={(e)=>setFavoriteGames(e.target.value)} placeholder="Jogos favoritos separados por vírgula" className="glass px-3 py-2 rounded-lg text-sm font-mono" />
+          <label className="text-xs font-mono text-muted-foreground space-y-1">Status de atividade
+            <select value={statusMeta(activityStatus).value} onChange={(e)=>setActivityStatus(e.target.value)}
+              className="w-full glass px-3 py-2 rounded-lg text-sm text-foreground">
+              {ACTIVITY_STATUS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+            </select>
+          </label>
+          <label className="text-xs font-mono text-muted-foreground space-y-1">
+            <span className="flex items-center justify-between gap-2">
+              Jogo atual
+              <button type="button" onClick={autoDetectGame}
+                className="glass px-2 py-0.5 rounded text-[10px] flex items-center gap-1 hover-lift">
+                <RefreshCw className={`h-3 w-3 ${detecting ? "animate-spin" : ""}`} /> detectar do PC
+              </button>
+            </span>
+            <select value={currentGame} onChange={(e)=>setCurrentGame(e.target.value)}
+              className="w-full glass px-3 py-2 rounded-lg text-sm text-foreground">
+              <option value="">— nenhum —</option>
+              {[...new Set([...GAME_CATALOG, ...(currentGame ? [currentGame] : [])])].map((g) => (
+                <option key={g} value={g}>{g}</option>
+              ))}
+            </select>
+          </label>
+          <div className="md:col-span-2 space-y-1">
+            <span className="text-xs font-mono text-muted-foreground">Jogos favoritos (clica pra ligar/desligar)</span>
+            <div className="flex flex-wrap gap-1.5">
+              {GAME_CATALOG.map((g) => {
+                const on = csvToArray(favoriteGames).includes(g);
+                return (
+                  <button type="button" key={g} onClick={()=>toggleFavGame(g)}
+                    className={`px-2.5 py-1 rounded-full text-[11px] font-mono flex items-center gap-1 ${on ? "btn-neon" : "glass hover:bg-white/5"}`}>
+                    <Gamepad2 className="h-3 w-3" /> {g}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
           <input value={mutualServers} onChange={(e)=>setMutualServers(e.target.value)} placeholder="Servidores mútuos separados por vírgula" className="glass px-3 py-2 rounded-lg text-sm font-mono" />
           <input value={discordUsername} onChange={(e)=>setDiscordUsername(e.target.value)} placeholder="Discord" className="glass px-3 py-2 rounded-lg text-sm font-mono" />
           <input value={whatsappNumber} onChange={(e)=>setWhatsappNumber(e.target.value)} placeholder="WhatsApp" className="glass px-3 py-2 rounded-lg text-sm font-mono" />
         </div>
+        <p className="text-[11px] font-mono text-muted-foreground">
+          🎮 A detecção automática do jogo aberto no PC funciona no <b>Luris Desktop (Windows)</b> — o navegador não tem permissão pra ler processos. Aqui na web dá pra escolher na lista.
+        </p>
+        <button onClick={saveProfile} disabled={saving} className="btn-neon px-4 py-2 rounded-lg text-sm font-display flex items-center gap-2">
+          <Save className="h-3 w-3" /> {saving ? "..." : "Salvar perfil"}
+        </button>
       </section>
 
       <section className="glass-strong rounded-2xl p-5 space-y-4">
@@ -244,9 +302,22 @@ function SettingsPage() {
           </label>
           <label className="text-xs font-mono text-muted-foreground space-y-1">Tema do card
             <select value={profileTheme} onChange={(e)=>setProfileTheme(e.target.value)} className="w-full glass px-3 py-2 rounded-lg text-sm text-foreground">
-              {PROFILE_THEMES.map((o) => <option key={o} value={o}>{o}</option>)}
+              {PROFILE_THEMES.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
             </select>
           </label>
+        </div>
+        <div className="grid sm:grid-cols-2 gap-2">
+          <div className={`glass rounded-xl p-4 profile-theme-${profileTheme}`}>
+            <div className={`text-2xl ${optionClass(NAME_FONTS, nameFont)} ${optionClass(NAME_COLORS, nameColor)}`}>{displayName || "Seu nome"}</div>
+            <div className="text-[11px] font-mono text-muted-foreground">prévia do estilo</div>
+          </div>
+          <div className="glass rounded-xl p-4 flex items-center gap-3">
+            <AvatarBubble url={avatarUrl} name={displayName} size={56} effect={profile?.equipped_effect ?? null} />
+            <div className="text-[11px] font-mono text-muted-foreground">
+              Aura equipada: <b>{profile?.equipped_effect ?? "nenhuma"}</b><br />
+              Troca no Marketplace → inventário.
+            </div>
+          </div>
         </div>
         <div className="flex flex-wrap gap-2 text-xs">
           {(favoriteGames ? csvToArray(favoriteGames) : ["Roblox", "Valorant"]).map((game) => (
