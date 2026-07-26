@@ -147,7 +147,7 @@ function FriendsView({ userId }: { userId: string }) {
     const { data } = await supabase
       .from("profiles").select("id,username,display_name,avatar_url,bio,codename,current_game,favorite_games,discord_username,whatsapp_number,equipped_effect,name_color,name_font")
       .or(`username.ilike.%${q}%,display_name.ilike.%${q}%`)
-      .neq("id", userId).limit(10);
+      .neq("id", userId).limit(40);
     setResults((data ?? []) as MiniProfile[]);
   }
 

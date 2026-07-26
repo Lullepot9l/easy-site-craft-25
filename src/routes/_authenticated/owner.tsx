@@ -37,7 +37,7 @@ function OwnerPanel() {
 
   async function refresh() {
     const [u, p, i, m, c, r, l] = await Promise.all([
-      supabase.from("profiles").select("id, display_name, username, xp, level, coins").limit(200),
+      supabase.from("profiles").select("id, display_name, username, xp, level, coins").limit(1000),
       supabase.from("social_posts").select("id", { count: "exact", head: true }),
       supabase.from("generated_images").select("id", { count: "exact", head: true }),
       supabase.from("messages").select("id", { count: "exact", head: true }),

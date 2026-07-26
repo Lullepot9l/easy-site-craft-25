@@ -203,7 +203,7 @@ function SettingsPage() {
               <input value={codename} onChange={(e)=>setCodename(e.target.value)} placeholder="Codinome" className="w-full glass px-3 py-2 rounded-lg text-sm font-mono" />
               <input value={avatarUrl} onChange={(e)=>setAvatarUrl(e.target.value)} placeholder="URL da foto (opcional)" className="w-full glass px-3 py-2 rounded-lg text-sm font-mono" />
             </div>
-            <textarea value={bio} onChange={(e)=>setBio(e.target.value)} maxLength={240} rows={3} placeholder="Descrição do perfil" className="w-full glass px-3 py-2 rounded-lg text-sm font-mono resize-none" />
+            <textarea value={bio} onChange={(e)=>setBio(e.target.value)} maxLength={600} rows={3} placeholder="Descrição do perfil" className="w-full glass px-3 py-2 rounded-lg text-sm font-mono resize-none" />
             <div
               onDragOver={(e)=>e.preventDefault()}
               onDrop={(e)=>{ e.preventDefault(); onPickAvatar(e.dataTransfer.files?.[0]); }}

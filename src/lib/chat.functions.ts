@@ -81,7 +81,7 @@ export const chatLuris = createServerFn({ method: "POST" })
 
     const [{ data: settings }, { data: memRows }, { data: isOwnerRow }] = await Promise.all([
       context.supabase.from("luris_settings").select("system_prompt").eq("id", 1).maybeSingle(),
-      context.supabase.from("user_memory").select("memory_key, memory_value").eq("user_id", context.userId).order("updated_at", { ascending: false }).limit(60),
+      context.supabase.from("user_memory").select("memory_key, memory_value").eq("user_id", context.userId).order("updated_at", { ascending: false }).limit(200),
       context.supabase.rpc("has_role", { _user_id: context.userId, _role: "owner" }),
     ]);
 

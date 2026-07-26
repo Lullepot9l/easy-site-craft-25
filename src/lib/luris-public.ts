@@ -40,7 +40,7 @@ function normalizeMessages(body: Record<string, unknown>): ChatMessage[] {
         content: String(m?.content ?? "").slice(0, 12000),
       }))
       .filter((m) => m.content.trim().length > 0)
-      .slice(-30) as ChatMessage[];
+      .slice(-120) as ChatMessage[];
   }
   const text = [body.message, body.prompt, body.input, body.content]
     .find((v) => typeof v === "string" && v.trim()) as string | undefined;
