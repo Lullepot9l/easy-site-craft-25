@@ -204,13 +204,52 @@ function SettingsPage() {
       <section className="glass-strong rounded-2xl p-5 space-y-4">
         <h2 className="font-display text-lg flex items-center gap-2"><Activity className="h-4 w-4" /> Status, jogos e contatos</h2>
         <div className="grid md:grid-cols-2 gap-3">
-          <input value={activityStatus} onChange={(e)=>setActivityStatus(e.target.value)} placeholder="Status: online, ocupado, assistindo..." className="glass px-3 py-2 rounded-lg text-sm font-mono" />
-          <input value={currentGame} onChange={(e)=>setCurrentGame(e.target.value)} placeholder="Jogo atual: ROBLOX, Valorant..." className="glass px-3 py-2 rounded-lg text-sm font-mono" />
-          <input value={favoriteGames} onChange={(e)=>setFavoriteGames(e.target.value)} placeholder="Jogos favoritos separados por vírgula" className="glass px-3 py-2 rounded-lg text-sm font-mono" />
+          <label className="text-xs font-mono text-muted-foreground space-y-1">Status de atividade
+            <select value={statusMeta(activityStatus).value} onChange={(e)=>setActivityStatus(e.target.value)}
+              className="w-full glass px-3 py-2 rounded-lg text-sm text-foreground">
+              {ACTIVITY_STATUS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+            </select>
+          </label>
+          <label className="text-xs font-mono text-muted-foreground space-y-1">
+            <span className="flex items-center justify-between gap-2">
+              Jogo atual
+              <button type="button" onClick={autoDetectGame}
+                className="glass px-2 py-0.5 rounded text-[10px] flex items-center gap-1 hover-lift">
+                <RefreshCw className={`h-3 w-3 ${detecting ? "animate-spin" : ""}`} /> detectar do PC
+              </button>
+            </span>
+            <select value={currentGame} onChange={(e)=>setCurrentGame(e.target.value)}
+              className="w-full glass px-3 py-2 rounded-lg text-sm text-foreground">
+              <option value="">— nenhum —</option>
+              {[...new Set([...GAME_CATALOG, ...(currentGame ? [currentGame] : [])])].map((g) => (
+                <option key={g} value={g}>{g}</option>
+              ))}
+            </select>
+          </label>
+          <div className="md:col-span-2 space-y-1">
+            <span className="text-xs font-mono text-muted-foreground">Jogos favoritos (clica pra ligar/desligar)</span>
+            <div className="flex flex-wrap gap-1.5">
+              {GAME_CATALOG.map((g) => {
+                const on = csvToArray(favoriteGames).includes(g);
+                return (
+                  <button type="button" key={g} onClick={()=>toggleFavGame(g)}
+                    className={`px-2.5 py-1 rounded-full text-[11px] font-mono flex items-center gap-1 ${on ? "btn-neon" : "glass hover:bg-white/5"}`}>
+                    <Gamepad2 className="h-3 w-3" /> {g}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
           <input value={mutualServers} onChange={(e)=>setMutualServers(e.target.value)} placeholder="Servidores mútuos separados por vírgula" className="glass px-3 py-2 rounded-lg text-sm font-mono" />
           <input value={discordUsername} onChange={(e)=>setDiscordUsername(e.target.value)} placeholder="Discord" className="glass px-3 py-2 rounded-lg text-sm font-mono" />
           <input value={whatsappNumber} onChange={(e)=>setWhatsappNumber(e.target.value)} placeholder="WhatsApp" className="glass px-3 py-2 rounded-lg text-sm font-mono" />
         </div>
+        <p className="text-[11px] font-mono text-muted-foreground">
+          🎮 A detecção automática do jogo aberto no PC funciona no <b>Luris Desktop (Windows)</b> — o navegador não tem permissão pra ler processos. Aqui na web dá pra escolher na lista.
+        </p>
+        <button onClick={saveProfile} disabled={saving} className="btn-neon px-4 py-2 rounded-lg text-sm font-display flex items-center gap-2">
+          <Save className="h-3 w-3" /> {saving ? "..." : "Salvar perfil"}
+        </button>
       </section>
 
       <section className="glass-strong rounded-2xl p-5 space-y-4">
@@ -228,9 +267,22 @@ function SettingsPage() {
           </label>
           <label className="text-xs font-mono text-muted-foreground space-y-1">Tema do card
             <select value={profileTheme} onChange={(e)=>setProfileTheme(e.target.value)} className="w-full glass px-3 py-2 rounded-lg text-sm text-foreground">
-              {PROFILE_THEMES.map((o) => <option key={o} value={o}>{o}</option>)}
+              {PROFILE_THEMES.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
             </select>
           </label>
+        </div>
+        <div className="grid sm:grid-cols-2 gap-2">
+          <div className={`glass rounded-xl p-4 profile-theme-${profileTheme}`}>
+            <div className={`text-2xl ${optionClass(NAME_FONTS, nameFont)} ${optionClass(NAME_COLORS, nameColor)}`}>{displayName || "Seu nome"}</div>
+            <div className="text-[11px] font-mono text-muted-foreground">prévia do estilo</div>
+          </div>
+          <div className="glass rounded-xl p-4 flex items-center gap-3">
+            <AvatarBubble url={avatarUrl} name={displayName} size={56} effect={profile?.equipped_effect ?? null} />
+            <div className="text-[11px] font-mono text-muted-foreground">
+              Aura equipada: <b>{profile?.equipped_effect ?? "nenhuma"}</b><br />
+              Troca no Marketplace → inventário.
+            </div>
+          </div>
         </div>
         <div className="flex flex-wrap gap-2 text-xs">
           {(favoriteGames ? csvToArray(favoriteGames) : ["Roblox", "Valorant"]).map((game) => (
