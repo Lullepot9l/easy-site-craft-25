@@ -125,6 +125,21 @@ function SettingsPage() {
     } catch { /* noop */ }
   }, []);
 
+  // No Luris Desktop o jogo aberto no PC é detectado e salvo sozinho.
+  useEffect(() => {
+    if (!user || !hasDesktopBridge()) return;
+    let stop = false;
+    async function tick() {
+      const game = await detectCurrentGame();
+      if (stop || game === null) return;
+      setCurrentGame(game);
+      await supabase.from("profiles").update({ current_game: game, updated_at: new Date().toISOString() }).eq("id", user!.id);
+    }
+    tick();
+    const id = setInterval(tick, 60_000);
+    return () => { stop = true; clearInterval(id); };
+  }, [user?.id]);
+
   async function saveProfile() {
     if (!user) return;
     setSaving(true);
