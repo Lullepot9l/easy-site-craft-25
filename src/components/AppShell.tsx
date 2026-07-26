@@ -2,7 +2,7 @@ import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import {
   LayoutDashboard, MessageSquare, Image as ImgIcon, Users, ShoppingBag,
   Code2, Gamepad2, Crown, FileDown, LogOut, Sparkles, Globe, Terminal, Zap,
-  Flame, Infinity as InfinityIcon, ChevronDown, Heart, Settings2,
+  Flame, Infinity as InfinityIcon, ChevronDown, Heart, Settings2, IdCard,
 } from "lucide-react";
 import { useState, type ReactNode, type ComponentType } from "react";
 import { toast } from "sonner";
@@ -33,6 +33,7 @@ const COMMUNITY_NAV: NavItem[] = [
 ];
 
 const ACCOUNT_NAV: NavItem[] = [
+  { to: "/profile", icon: IdCard, label: "Meu perfil" },
   { to: "/settings", icon: Settings2, label: "Configurações" },
 ];
 
