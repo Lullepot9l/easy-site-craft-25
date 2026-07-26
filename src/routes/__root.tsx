@@ -70,7 +70,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "stylesheet", href: appCss },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" },
+      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Audiowide&family=Cinzel:wght@700&family=Pacifico&family=Great+Vibes&family=Press+Start+2P&family=Unica+One&display=swap" },
       { rel: "icon", type: "image/png", sizes: "any", href: "/luris-icon.png" },
       { rel: "icon", type: "image/png", sizes: "16x16", href: "/luris-icon.png" },
       { rel: "icon", type: "image/png", sizes: "32x32", href: "/luris-icon.png" },
