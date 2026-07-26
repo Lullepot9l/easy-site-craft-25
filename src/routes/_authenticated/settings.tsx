@@ -4,7 +4,11 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { AvatarBubble } from "@/components/AvatarBubble";
-import { Activity, Badge, Gamepad2, Image as ImgIcon, Palette, Save, RotateCcw, Upload } from "lucide-react";
+import { Activity, Badge, Gamepad2, Image as ImgIcon, Palette, Save, RotateCcw, Upload, RefreshCw } from "lucide-react";
+import {
+  ACTIVITY_STATUS, GAME_CATALOG, NAME_COLORS, NAME_FONTS, PROFILE_THEMES,
+  detectCurrentGame, hasDesktopBridge, optionClass, statusMeta,
+} from "@/lib/profile-style";
 
 export const Route = createFileRoute("/_authenticated/settings")({ component: SettingsPage });
 
@@ -13,28 +17,8 @@ const BG_MAP_KEY = "luris.chat.bg.map"; // JSON: Record<convId, {mode,value}>
 
 type BgCfg = { mode: "color" | "image"; value: string };
 
-const NAME_COLORS = [
-  { value: "gradient", label: "Gradiente Luris", className: "gradient-text" },
-  { value: "magenta", label: "Magenta", className: "neon-text-magenta" },
-  { value: "cyan", label: "Ciano", className: "neon-text-cyan" },
-  { value: "soft", label: "Suave", className: "text-[oklch(0.96_0.02_295)]" },
-] as const;
-
-const NAME_FONTS = [
-  { value: "display", label: "Cyber", className: "font-display" },
-  { value: "mono", label: "Mono", className: "font-mono" },
-  { value: "soft", label: "Soft", className: "font-body" },
-  { value: "nightberry", label: "Nightberry", className: "font-nightberry" },
-] as const;
-
-const PROFILE_THEMES = ["neon", "nightberry", "sakura", "galaxy"] as const;
-
 function csvToArray(value: string) {
   return value.split(",").map((v) => v.trim()).filter(Boolean).slice(0, 8);
-}
-
-function optionClass<T extends readonly { value: string; className: string }[]>(options: T, value?: string | null) {
-  return options.find((o) => o.value === value)?.className ?? options[0].className;
 }
 
 const PRESETS: BgCfg[] = [
