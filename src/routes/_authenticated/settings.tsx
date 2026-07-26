@@ -51,8 +51,28 @@ function SettingsPage() {
   const [scope, setScope] = useState<"all" | "single">("all");
   const [bg, setBg] = useState<BgCfg>({ mode: "color", value: "oklch(0.15 0.05 285)" });
   const [saving, setSaving] = useState(false);
+  const [detecting, setDetecting] = useState(false);
   const avatarFileRef = useRef<HTMLInputElement>(null);
   const bgFileRef = useRef<HTMLInputElement>(null);
+
+  function toggleFavGame(game: string) {
+    const list = csvToArray(favoriteGames);
+    const next = list.includes(game) ? list.filter((g) => g !== game) : [...list, game].slice(0, 8);
+    setFavoriteGames(next.join(", "));
+  }
+
+  async function autoDetectGame() {
+    if (!hasDesktopBridge()) {
+      toast.info("Detecção automática só no Luris Desktop (Windows). Escolhe na lista por enquanto.");
+      return;
+    }
+    setDetecting(true);
+    try {
+      const game = await detectCurrentGame();
+      if (game) { setCurrentGame(game); toast.success(`Detectado: ${game}`); }
+      else toast("Nenhum jogo aberto detectado");
+    } finally { setDetecting(false); }
+  }
 
   function readFileAsDataURL(file: File, maxMB: number): Promise<string> {
     return new Promise((resolve, reject) => {
