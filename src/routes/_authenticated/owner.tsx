@@ -71,6 +71,23 @@ function OwnerPanel() {
     refresh();
   }
 
+  async function setCoins(userId: string, value: number) {
+    const { error } = await supabase.from("profiles").update({ coins: Math.max(0, Math.floor(value)) }).eq("id", userId);
+    if (error) return toast.error(error.message);
+    toast.success(`Saldo definido em ${Math.max(0, Math.floor(value))} 🪙`);
+    refresh();
+  }
+
+  async function giveEveryone(amount: number) {
+    const targets = users.map(u => u.id);
+    for (const id of targets) {
+      const cur = users.find(u => u.id === id)?.coins ?? 0;
+      await supabase.from("profiles").update({ coins: Math.max(0, cur + amount) }).eq("id", id);
+    }
+    toast.success(`${amount > 0 ? "+" : ""}${amount} 🪙 para ${targets.length} contas`);
+    refresh();
+  }
+
   // Categorias colapsáveis + busca global
   const CATEGORIES = useMemo(() => ([
     { id: "users",     label: "Usuários & Acesso",      icon: UsersIcon,     group: "Core",     keywords: ["user","role","cargo","permissao","plano","usuario","coin"] },
@@ -177,6 +194,16 @@ function OwnerPanel() {
             <h3 className="text-sm font-display neon-text flex items-center gap-2"><Shield className="h-4 w-4" /> Gerenciar usuários</h3>
             <input value={query} onChange={(e)=>setQuery(e.target.value)} placeholder="🔍 filtrar usuários..." className="glass px-3 py-1.5 rounded-lg text-xs font-mono" />
           </div>
+          <div className="glass rounded-xl p-3 mb-4 flex flex-wrap items-center gap-2 text-xs font-mono">
+            <span className="neon-text-magenta flex items-center gap-1"><Coins className="h-3 w-3" /> Banco de LuCoins</span>
+            <input type="number" value={coinAmount} onChange={(e)=>setCoinAmount(Number(e.target.value))}
+              className="glass px-2 py-1 rounded w-28" placeholder="valor" />
+            <button onClick={()=>giveEveryone(coinAmount)} className="glass px-2.5 py-1 rounded hover-lift">dar a todos</button>
+            <button onClick={()=>giveEveryone(-coinAmount)} className="glass px-2.5 py-1 rounded hover-lift">tirar de todos</button>
+            <span className="text-muted-foreground">
+              use os botões da linha do usuário pra ajustar individual, ou <b>=</b> pra definir exatamente {coinAmount}
+            </span>
+          </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="text-xs uppercase font-mono text-muted-foreground border-b border-border">
@@ -214,6 +241,7 @@ function OwnerPanel() {
                           <button onClick={()=>addCoins(u.id, 100)} title="+100 coins" className="glass p-1.5 rounded hover-lift"><ArrowUp className="h-3 w-3 text-[oklch(0.7_0.25_140)]" /></button>
                           <button onClick={()=>addCoins(u.id, -100)} title="-100 coins" className="glass p-1.5 rounded hover-lift"><ArrowDown className="h-3 w-3 text-[oklch(0.7_0.25_25)]" /></button>
                           <button onClick={()=>addCoins(u.id, 1000)} title="+1000" className="glass p-1.5 rounded hover-lift"><Coins className="h-3 w-3 text-[oklch(0.78_0.25_60)]" /></button>
+                          <button onClick={()=>setCoins(u.id, coinAmount)} title={`definir saldo = ${coinAmount}`} className="glass px-2 py-1 rounded hover-lift text-[10px] font-mono">=</button>
                         </div>
                       </td>
                     </tr>
