@@ -31,6 +31,7 @@ function OwnerPanel() {
   const [logs, setLogs] = useState<LogRow[]>([]);
   const [stats, setStats] = useState({ users: 0, posts: 0, images: 0, messages: 0, conversations: 0 });
   const [query, setQuery] = useState("");
+  const [coinAmount, setCoinAmount] = useState(1000);
 
   useEffect(() => { if (isOwner) refresh(); }, [isOwner]);
 
