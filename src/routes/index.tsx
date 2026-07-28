@@ -68,8 +68,10 @@ function Landing() {
           <button onClick={() => setLang(lang === "pt" ? "en" : "pt")} className="px-3 py-1 rounded-md glass text-sm font-mono">
             {lang === "pt" ? "PT 🇧🇷" : "EN 🇺🇸"}
           </button>
-          <InstallApp className="hidden sm:inline-flex" />
-          <MobileModeToggle className="hidden md:inline-flex" />
+          <span className="hidden md:contents">
+            <InstallApp />
+            <MobileModeToggle />
+          </span>
           <Link to="/login" className="px-5 py-2 btn-neon rounded-lg font-display text-sm">
             {t("auth.login")}
           </Link>
