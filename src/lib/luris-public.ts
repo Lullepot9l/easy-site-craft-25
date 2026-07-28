@@ -93,8 +93,8 @@ export async function callLurisAI(messages: ChatMessage[], opts: { timeoutMs?: n
         messages: [{ role: "system", content: system }, ...messages],
       }),
     });
-    if (res.status === 402) return { content: "⚠️ Créditos de IA acabaram no workspace.", error: "credits_exhausted" };
-    if (res.status === 429) return { content: "⚠️ Limite de IA atingido. Tenta de novo em alguns segundos.", error: "rate_limited" };
+    if (res.status === 402) return { content: "⚠️ A Luris está fora do ar por limite diário do servidor de IA. Volta sozinho no próximo ciclo — não gasta nada da sua conta.", error: "ai_unavailable" };
+    if (res.status === 429) return { content: "⚠️ Fila cheia agora. Tenta de novo em alguns segundos.", error: "rate_limited" };
     if (!res.ok) return { content: `⚠️ IA erro ${res.status}.`, error: `ai_${res.status}` };
     const out = await res.json() as { choices?: Array<{ message?: { content?: string } }> };
     return { content: out.choices?.[0]?.message?.content?.trim() || "(sem resposta)", error: null as string | null };
