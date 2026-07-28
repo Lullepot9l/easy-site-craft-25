@@ -117,17 +117,32 @@ export const chatLuris = createServerFn({ method: "POST" })
       return { role: m.role, content: m.content };
     });
 
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [{ role: "system", content: system }, ...modelMessages],
-      }),
-    });
+    // Cadeia de modelos: se um ficar indisponível/limitado, cai pro próximo
+    // automaticamente. O usuário nunca paga nada por isso — LuCoins são só do app.
+    const MODEL_CHAIN = [
+      "google/gemini-3.6-flash",
+      "google/gemini-3.1-flash-lite",
+      "openai/gpt-5.4-nano",
+    ];
 
-    if (res.status === 429) return { error: "A IA está recebendo muitas mensagens ao mesmo tempo. Manda de novo em alguns segundos.", content: "" };
-    if (res.status === 402) return { error: "A cota de IA do workspace zerou por hoje (isso é do plano Lovable, não do seu perfil). Ela volta no próximo ciclo — LuCoins do app não têm nada a ver com isso.", content: "" };
+    let res: Response | null = null;
+    for (const model of MODEL_CHAIN) {
+      res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model,
+          messages: [{ role: "system", content: system }, ...modelMessages],
+        }),
+      });
+      if (res.ok) break;
+      if (res.status !== 402 && res.status !== 429 && res.status < 500) break;
+      await new Promise((r) => setTimeout(r, 400));
+    }
+
+    if (!res) return { error: "A IA não respondeu. Tenta de novo.", content: "" };
+    if (res.status === 429) return { error: "A Luris está com fila cheia agora. Manda de novo em alguns segundos.", content: "" };
+    if (res.status === 402) return { error: "A Luris está temporariamente fora do ar (limite diário do servidor de IA). Isso não gasta nada da sua conta e volta sozinho no próximo ciclo.", content: "" };
     if (!res.ok) return { error: `Erro ${res.status}`, content: "" };
 
     const json = await res.json() as { choices?: Array<{ message?: { content?: string } }> };
