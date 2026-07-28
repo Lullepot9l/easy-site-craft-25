@@ -66,6 +66,10 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { profile, role, isOwner } = useAuth();
   const navigate = useNavigate();
   const path = useRouterState({ select: (r) => r.location.pathname });
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  // fecha o menu ao navegar
+  useEffect(() => { setMenuOpen(false); }, [path]);
 
   async function logout() {
     await supabase.auth.signOut();
@@ -76,7 +80,30 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen flex relative">
       <CyberBackground />
-      <aside className="w-64 glass-strong border-r border-[oklch(0.4_0.15_295/0.3)] flex flex-col p-4 sticky top-0 h-screen z-10">
+
+      {/* Topbar mobile */}
+      <div className="lg:hidden fixed top-0 inset-x-0 z-40 h-14 px-3 flex items-center justify-between glass-strong border-b border-[oklch(0.4_0.15_295/0.3)]">
+        <button onClick={() => setMenuOpen(true)} aria-label="Abrir menu"
+          className="p-2 rounded-lg glass hover-lift">
+          <Menu className="h-5 w-5" />
+        </button>
+        <LurisLogo size="text-lg" />
+        <AvatarBubble url={profile?.avatar_url} name={profile?.display_name} size={30}
+          effect={profile?.equipped_effect ?? (isOwner ? "fx-owner-purple" : null)} />
+      </div>
+
+      {menuOpen && (
+        <div className="lg:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm animate-fade-in-up"
+          onClick={() => setMenuOpen(false)} />
+      )}
+
+      <aside className={`w-64 glass-strong border-r border-[oklch(0.4_0.15_295/0.3)] flex flex-col p-4 h-screen z-50
+        fixed top-0 left-0 transition-transform duration-300 lg:sticky lg:translate-x-0 lg:z-10
+        ${menuOpen ? "translate-x-0" : "-translate-x-full"}`}>
+        <button onClick={() => setMenuOpen(false)} aria-label="Fechar menu"
+          className="lg:hidden absolute top-3 right-3 p-1.5 rounded-lg glass">
+          <X className="h-4 w-4" />
+        </button>
         <div className="mb-6"><LurisLogo size="text-2xl" /></div>
 
         <nav className="space-y-4 flex-1 overflow-y-auto pr-1">
@@ -115,7 +142,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </aside>
 
-      <main className="flex-1 p-8 relative z-10 overflow-x-hidden">{children}</main>
+      <main className="flex-1 p-4 pt-20 lg:p-8 relative z-10 overflow-x-hidden min-w-0">{children}</main>
       <GodMode />
     </div>
   );
