@@ -13,6 +13,7 @@ export function InstallApp({ className = "" }: { className?: string }) {
   const [installed, setInstalled] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
   const [showIOSHelp, setShowIOSHelp] = useState(false);
+  const [showWin, setShowWin] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -64,16 +65,42 @@ export function InstallApp({ className = "" }: { className?: string }) {
           {isIOS ? <Smartphone size={16} /> : <Download size={16} />}
           Instalar Luris (PWA)
         </button>
-        <a
-          href={lurisWinZip.url}
-          download="Luris-Windows.zip"
+        <button
+          type="button"
+          onClick={() => setShowWin(true)}
           className="inline-flex items-center gap-2 px-4 py-2 rounded-lg btn-neon font-display text-sm glow-purple"
           title="Baixar aplicativo desktop para Windows (.exe)"
         >
           <MonitorDown size={16} />
           Baixar para Windows (.exe)
-        </a>
+        </button>
       </div>
+
+      {showWin && (
+        <div onClick={() => setShowWin(false)} className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4">
+          <div onClick={(e) => e.stopPropagation()} className="glass-strong rounded-2xl p-6 max-w-md w-full text-sm space-y-3">
+            <h3 className="font-display text-lg gradient-text">Luris para Windows</h3>
+            <p className="text-muted-foreground text-xs">
+              App nativo com detecção automática do jogo que você está jogando, atalhos e janela sem barra de navegador.
+            </p>
+            <ol className="list-decimal pl-5 space-y-1 text-muted-foreground text-xs">
+              <li>Baixe o pacote <b>Luris-Windows.zip</b>.</li>
+              <li>Clique com o botão direito → <b>Extrair tudo</b>.</li>
+              <li>Abra a pasta e execute <b>Luris.exe</b>.</li>
+              <li>Se o Windows avisar, clique em <b>Mais informações → Executar assim mesmo</b>.</li>
+            </ol>
+            <a
+              href={lurisWinZip.url}
+              download="Luris-Windows.zip"
+              onClick={() => setShowWin(false)}
+              className="w-full inline-flex items-center justify-center gap-2 py-2.5 btn-neon rounded-lg font-display glow-purple"
+            >
+              <MonitorDown size={16} /> Baixar agora
+            </a>
+            <button onClick={() => setShowWin(false)} className="w-full py-2 glass rounded-lg font-display text-xs">Fechar</button>
+          </div>
+        </div>
+      )}
 
 
       {showIOSHelp && (
