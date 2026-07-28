@@ -7,6 +7,7 @@ import {
 import { CyberBackground } from "@/components/CyberBackground";
 import { LurisLogo } from "@/components/LurisLogo";
 import { InstallApp } from "@/components/InstallApp";
+import { MobileModeToggle } from "@/components/MobileModeToggle";
 import { useI18n } from "@/lib/i18n";
 
 
@@ -68,6 +69,7 @@ function Landing() {
             {lang === "pt" ? "PT 🇧🇷" : "EN 🇺🇸"}
           </button>
           <InstallApp className="hidden sm:inline-flex" />
+          <MobileModeToggle className="hidden md:inline-flex" />
           <Link to="/login" className="px-5 py-2 btn-neon rounded-lg font-display text-sm">
             {t("auth.login")}
           </Link>
@@ -94,6 +96,7 @@ function Landing() {
                 <Rocket className="h-4 w-4" /> Entrar grátis
               </Link>
               <InstallApp />
+              <MobileModeToggle />
               <a href="#categorias" className="px-7 py-3 rounded-xl glass hover-lift font-display text-base">
                 Ver recursos
               </a>
