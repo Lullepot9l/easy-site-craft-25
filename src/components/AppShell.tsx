@@ -4,7 +4,8 @@ import {
   Code2, Gamepad2, Crown, FileDown, LogOut, Sparkles, Globe, Terminal, Zap,
   Flame, Infinity as InfinityIcon, ChevronDown, Heart, Settings2, IdCard,
 } from "lucide-react";
-import { useState, type ReactNode, type ComponentType } from "react";
+import { useEffect, useState, type ReactNode, type ComponentType } from "react";
+import { Menu, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
