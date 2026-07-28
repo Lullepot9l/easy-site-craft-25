@@ -6,9 +6,7 @@ const path = require("path");
 
 // URL do Luris publicado. Se você publicar em outro domínio,
 // basta editar essa linha e reempacotar.
-const LURIS_URL =
-  process.env.LURIS_URL ||
-  "https://id-preview--1de79d54-a6f3-4cd0-a8b0-e7de4c704084.lovable.app";
+const LURIS_URL = process.env.LURIS_URL || "https://luris-ia.lovable.app";
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -41,6 +39,26 @@ function createWindow() {
   });
 
   win.loadURL(LURIS_URL);
+
+  // Se cair a internet ou o servidor não responder, mostra tela offline
+  win.webContents.on("did-fail-load", (_e, _code, desc) => {
+    win.loadURL(
+      "data:text/html;charset=utf-8," +
+        encodeURIComponent(
+          `<body style="background:#0a0014;color:#e9d5ff;font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;gap:12px">
+           <h1 style="margin:0">Luris offline</h1>
+           <p style="opacity:.7">Não consegui conectar (${desc}). Verifique sua internet.</p>
+           <button onclick="location.href='${LURIS_URL}'" style="padding:10px 20px;border-radius:10px;border:0;background:#7c3aed;color:#fff;cursor:pointer">Tentar de novo</button>
+           </body>`,
+        ),
+    );
+  });
+
+  // Atalhos: F5 recarrega, Ctrl+Shift+I abre devtools
+  win.webContents.on("before-input-event", (_e, input) => {
+    if (input.key === "F5") win.reload();
+    if (input.control && input.shift && input.key.toLowerCase() === "i") win.webContents.toggleDevTools();
+  });
 }
 
 // ===== Detecção do jogo aberto no PC =====
