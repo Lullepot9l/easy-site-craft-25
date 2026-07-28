@@ -86,7 +86,7 @@ export const Route = createFileRoute("/api/public/discord/interactions")({
             const prompt = userInput === `/${fullName}`
               ? `O usuário executou /${fullName}. Responda como assistente do servidor e ofereça ajuda útil.`
               : userInput;
-            const ai = await callLurisAI([{ role: "user", content: prompt }], { discord: true, timeoutMs: 1500 });
+            const ai = await callLurisAI([{ role: "user", content: prompt }], { discord: true, timeoutMs: 2400 });
             content = ai.content;
           } else {
             ephemeral = !!cmd.ephemeral;
@@ -98,7 +98,7 @@ export const Route = createFileRoute("/api/public/discord/interactions")({
               const ai = await callLurisAI([
                 { role: "system", content: persona },
                 { role: "user", content: userInput },
-              ], { discord: true, timeoutMs: 1500 });
+              ], { discord: true, timeoutMs: 2400 });
               content = ai.content;
             } else {
               content = cmd.response_content || `✅ Comando \`/${fullName}\` executado.`;
@@ -129,6 +129,22 @@ export const Route = createFileRoute("/api/public/discord/interactions")({
               flags: ephemeral ? 64 : 0,
             },
           });
+        }
+
+        // MESSAGE_COMPONENT (botões / selects)
+        if (interaction.type === 3) {
+          const customId = interaction.data?.custom_id ?? "";
+          const values: string[] = interaction.data?.values ?? [];
+          const ai = await callLurisAI(
+            [{ role: "user", content: `O usuário clicou no componente "${customId}"${values.length ? ` com a seleção: ${values.join(", ")}` : ""}. Responda de forma útil e curta.` }],
+            { discord: true, timeoutMs: 2400 },
+          );
+          return interactionJson({ type: 4, data: { content: ai.content.slice(0, 1900) } });
+        }
+
+        // APPLICATION_COMMAND_AUTOCOMPLETE
+        if (interaction.type === 4) {
+          return interactionJson({ type: 8, data: { choices: [] } });
         }
 
         return interactionJson({ type: 4, data: { content: "Interação não suportada.", flags: 64 } });

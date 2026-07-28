@@ -41,6 +41,9 @@ const FX_LABEL: Record<string, string> = {
   "fx-nightberry": "Aura Nightberry", "fx-owner-purple": "Owner Roxo",
   "fx-glitch": "Aura Glitch", "fx-solar": "Aura Solar", "fx-emerald": "Aura Esmeralda",
   "fx-cyberpink": "Aura Cyber Pink", "fx-moon": "Aura Lua",
+  "fx-nebula": "Aura Nebulosa", "fx-frost": "Aura Gélida", "fx-inferno": "Aura Inferno",
+  "fx-matrix": "Aura Matrix", "fx-royal": "Aura Real", "fx-starlight": "Aura Estelar",
+  "fx-vortex": "Aura Vórtice", "fx-candy": "Aura Candy",
 };
 
 function extractFxTag(tags: string[] | null): string | null {
