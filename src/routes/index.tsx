@@ -62,9 +62,9 @@ function Landing() {
     <div className="min-h-screen relative">
       <CyberBackground />
 
-      <header className="flex items-center justify-between px-8 py-6 relative z-10">
+      <header className="flex flex-wrap items-center justify-between gap-3 px-4 md:px-8 py-4 md:py-6 relative z-10">
         <LurisLogo />
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 md:gap-3">
           <button onClick={() => setLang(lang === "pt" ? "en" : "pt")} className="px-3 py-1 rounded-md glass text-sm font-mono">
             {lang === "pt" ? "PT 🇧🇷" : "EN 🇺🇸"}
           </button>
@@ -79,12 +79,12 @@ function Landing() {
 
       <main className="px-6 md:px-8 pt-8 pb-24 max-w-7xl mx-auto relative z-10">
         {/* HERO ORGANIZADO — sem raio, dois lados balanceados */}
-        <section className="grid lg:grid-cols-[1.1fr_0.9fr] gap-10 items-center mt-6 mb-20">
+        <section className="grid lg:grid-cols-[1.1fr_0.9fr] gap-8 md:gap-10 items-center mt-6 mb-16 md:mb-20">
           <div className="animate-fade-in-up">
             <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass text-xs font-mono neon-text-cyan mb-6">
               <Sparkles className="h-3 w-3" /> {t("landing.tag")} · v2.0
             </span>
-            <h1 className="text-5xl md:text-7xl font-display font-black gradient-text leading-[1.05]">
+            <h1 className="text-4xl sm:text-5xl md:text-7xl font-display font-black gradient-text leading-[1.05]">
               LURIS<span className="neon-text-magenta">·</span>AI
             </h1>
             <p className="mt-5 text-lg md:text-xl text-muted-foreground max-w-xl font-body leading-relaxed">
