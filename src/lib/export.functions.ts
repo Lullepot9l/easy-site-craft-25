@@ -2,7 +2,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
-type Row = Record<string, unknown>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Row = Record<string, any>;
 
 /** Snapshot AO VIVO do estado real da conta + da plataforma. */
 export const liveExportSnapshot = createServerFn({ method: "POST" })
@@ -72,12 +73,12 @@ export const liveExportSnapshot = createServerFn({ method: "POST" })
 
 const importSchema = z.object({
   payload: z.object({
-    profile: z.record(z.string(), z.unknown()).nullable().optional(),
-    preferences: z.record(z.string(), z.unknown()).nullable().optional(),
+    profile: z.record(z.string(), z.any()).nullable().optional(),
+    preferences: z.record(z.string(), z.any()).nullable().optional(),
     memory: z.array(z.object({ memory_key: z.string(), memory_value: z.string() })).optional(),
-    conversations: z.array(z.record(z.string(), z.unknown())).optional(),
-    messages: z.array(z.record(z.string(), z.unknown())).optional(),
-    chat_backgrounds: z.array(z.record(z.string(), z.unknown())).optional(),
+    conversations: z.array(z.record(z.string(), z.any())).optional(),
+    messages: z.array(z.record(z.string(), z.any())).optional(),
+    chat_backgrounds: z.array(z.record(z.string(), z.any())).optional(),
   }),
   parts: z.object({
     profile: z.boolean().default(true),
@@ -106,7 +107,7 @@ export const importAccountSnapshot = createServerFn({ method: "POST" })
       const patch: Row = {};
       for (const k of allowed) if (p.profile[k] !== undefined && p.profile[k] !== null) patch[k] = p.profile[k];
       if (Object.keys(patch).length) {
-        const { error } = await sb.from("profiles").update(patch).eq("id", uid);
+        const { error } = await sb.from("profiles").update(patch as never).eq("id", uid);
         if (error) return { ok: false, error: `Perfil: ${error.message}`, report };
         report.push(`Perfil atualizado (${Object.keys(patch).length} campos)`);
       }
