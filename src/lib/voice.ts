@@ -20,8 +20,6 @@ export const AI_VOICES = [
   { id: "coral",   label: "Coral — feminina calorosa" },
   { id: "sage",    label: "Sage — feminina serena" },
   { id: "ballad",  label: "Ballad — feminina expressiva" },
-  { id: "vale",    label: "Vale — feminina doce" },
-  { id: "aurora",  label: "Aurora — feminina cristalina" },
 ];
 
 export function listVoices(): SpeechSynthesisVoice[] {
