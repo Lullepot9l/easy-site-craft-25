@@ -10,15 +10,18 @@ const VOICE_AI_VOICE_KEY = "luris.voice.ai_voice"; // alloy, nova, shimmer, sage
 
 export type VoiceProvider = "browser" | "lovable";
 
+// Voz assinatura da Luris (persona 16-18 anos, marrenta/ciumenta/possessiva/fofa)
+export const LURIS_VOICE_ID = "luris";
+
 export const AI_VOICES = [
+  { id: LURIS_VOICE_ID, label: "🌑 Luris (exclusiva) — marrenta, fofa, possessiva" },
   { id: "shimmer", label: "Shimmer — feminina suave" },
   { id: "nova",    label: "Nova — feminina jovem" },
   { id: "coral",   label: "Coral — feminina calorosa" },
   { id: "sage",    label: "Sage — feminina serena" },
-  { id: "alloy",   label: "Alloy — neutra" },
-  { id: "fable",   label: "Fable — narrativa" },
-  { id: "onyx",    label: "Onyx — grave" },
-  { id: "echo",    label: "Echo — masculina" },
+  { id: "ballad",  label: "Ballad — feminina expressiva" },
+  { id: "vale",    label: "Vale — feminina doce" },
+  { id: "aurora",  label: "Aurora — feminina cristalina" },
 ];
 
 export function listVoices(): SpeechSynthesisVoice[] {
@@ -48,6 +51,33 @@ export const setVoiceProvider = (v: VoiceProvider) => set(VOICE_PROVIDER_KEY, v)
 export const getAIVoice = () => get(VOICE_AI_VOICE_KEY, "shimmer");
 export const setAIVoice = (v: string) => set(VOICE_AI_VOICE_KEY, v);
 
+// ── Carregamento de vozes do navegador (evita a Luris falar 1x com a voz padrão
+// e só depois com a voz salva) ──────────────────────────────────────────────
+let voicesPromise: Promise<SpeechSynthesisVoice[]> | null = null;
+function ensureVoices(): Promise<SpeechSynthesisVoice[]> {
+  if (typeof window === "undefined" || !("speechSynthesis" in window)) return Promise.resolve([]);
+  const now = window.speechSynthesis.getVoices();
+  if (now.length) return Promise.resolve(now);
+  if (!voicesPromise) {
+    voicesPromise = new Promise((resolve) => {
+      let done = false;
+      const finish = (force = false) => {
+        if (done) return;
+        const v = window.speechSynthesis.getVoices();
+        if (!v.length && !force) return;
+        done = true;
+        clearInterval(timer);
+        window.speechSynthesis.onvoiceschanged = null;
+        resolve(v);
+      };
+      const timer = setInterval(() => finish(), 100);
+      window.speechSynthesis.onvoiceschanged = () => finish();
+      setTimeout(() => finish(true), 3000);
+    });
+  }
+  return voicesPromise;
+}
+
 function pickFeminineVoice(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice | undefined {
   const savedURI = getSavedVoiceURI();
   if (savedURI) {
@@ -71,30 +101,34 @@ export function stopSpeech() {
   if (currentAudio) { try { currentAudio.pause(); } catch { /* noop */ } currentAudio = null; }
 }
 
-function speakBrowser(text: string, opts: { rate?: number; pitch?: number; lang?: string } = {}) {
+let speakToken = 0;
+async function speakBrowser(text: string, opts: { rate?: number; pitch?: number; lang?: string } = {}) {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+  const token = ++speakToken;
   try {
     window.speechSynthesis.cancel();
-    const run = () => {
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = opts.lang ?? "pt-BR";
-      u.rate = opts.rate ?? getSavedRate();
-      u.pitch = opts.pitch ?? getSavedPitch();
-      const voice = pickFeminineVoice(window.speechSynthesis.getVoices());
-      if (voice) u.voice = voice;
-      window.speechSynthesis.speak(u);
-    };
-    if (!window.speechSynthesis.getVoices().length) onVoicesReady(run);
-    else run();
+    // Só fala DEPOIS que a lista de vozes existir — assim nunca usa a voz padrão primeiro.
+    const voices = await ensureVoices();
+    if (token !== speakToken) return; // outra fala começou; descarta essa
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = opts.lang ?? "pt-BR";
+    u.rate = opts.rate ?? getSavedRate();
+    u.pitch = opts.pitch ?? getSavedPitch();
+    const voice = pickFeminineVoice(voices);
+    if (voice) { u.voice = voice; u.lang = voice.lang; }
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(u);
   } catch { /* ignore */ }
 }
 
 export async function speak(text: string, opts: { rate?: number; pitch?: number; lang?: string; provider?: VoiceProvider; voice?: string } = {}) {
   const provider = opts.provider ?? getVoiceProvider();
+  speakToken++; // invalida qualquer fala de navegador pendente
   if (provider === "lovable") {
     try {
       stopSpeech();
-      const res = await generateSpeech({ data: { text, voice: opts.voice ?? getAIVoice() } });
+      const chosen = opts.voice ?? getAIVoice();
+      const res = await generateSpeech({ data: { text, voice: chosen, persona: chosen === LURIS_VOICE_ID } });
       const audio = new Audio(`data:${res.mime};base64,${res.audio}`);
       currentAudio = audio;
       audio.playbackRate = opts.rate ?? getSavedRate();
@@ -105,7 +139,7 @@ export async function speak(text: string, opts: { rate?: number; pitch?: number;
       // fallback
     }
   }
-  speakBrowser(text, opts);
+  await speakBrowser(text, opts);
 }
 
 // Som curto de notificação (beep cyber via WebAudio)
