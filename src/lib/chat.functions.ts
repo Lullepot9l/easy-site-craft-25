@@ -76,9 +76,6 @@ export const chatLuris = createServerFn({ method: "POST" })
   )
 
   .handler(async ({ data, context }) => {
-    const key = process.env.LOVABLE_API_KEY;
-    if (!key) throw new Error("LOVABLE_API_KEY ausente");
-
     const [{ data: settings }, { data: memRows }, { data: isOwnerRow }] = await Promise.all([
       context.supabase.from("luris_settings").select("system_prompt").eq("id", 1).maybeSingle(),
       context.supabase.from("user_memory").select("memory_key, memory_value").eq("user_id", context.userId).order("updated_at", { ascending: false }).limit(200),
@@ -117,36 +114,14 @@ export const chatLuris = createServerFn({ method: "POST" })
       return { role: m.role, content: m.content };
     });
 
-    // Cadeia de modelos: se um ficar indisponível/limitado, cai pro próximo
-    // automaticamente. O usuário nunca paga nada por isso — LuCoins são só do app.
-    const MODEL_CHAIN = [
-      "google/gemini-3.6-flash",
-      "google/gemini-3.1-flash-lite",
-      "openai/gpt-5.4-nano",
-    ];
-
-    let res: Response | null = null;
-    for (const model of MODEL_CHAIN) {
-      res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model,
-          messages: [{ role: "system", content: system }, ...modelMessages],
-        }),
-      });
-      if (res.ok) break;
-      if (res.status !== 402 && res.status !== 429 && res.status < 500) break;
-      await new Promise((r) => setTimeout(r, 400));
-    }
-
-    if (!res) return { error: "A IA não respondeu. Tenta de novo.", content: "" };
-    if (res.status === 429) return { error: "A Luris está com fila cheia agora. Manda de novo em alguns segundos.", content: "" };
-    if (res.status === 402) return { error: "A Luris está temporariamente fora do ar (limite diário do servidor de IA). Isso não gasta nada da sua conta e volta sozinho no próximo ciclo.", content: "" };
-    if (!res.ok) return { error: `Erro ${res.status}`, content: "" };
-
-    const json = await res.json() as { choices?: Array<{ message?: { content?: string } }> };
-    const raw = json.choices?.[0]?.message?.content ?? "";
+    // Usa as chaves próprias (Groq -> OpenRouter -> OpenAI) e só cai no Lovable no fim.
+    const { callChatAI } = await import("@/lib/ai-providers.server");
+    const ai = await callChatAI(
+      [{ role: "system", content: system }, ...modelMessages] as any,
+      { timeoutMs: 60000 },
+    );
+    if (ai.error) return { error: ai.error, content: "" };
+    const raw = ai.content;
 
     // --- Parse REMEMBER ---
     const remembers = [...raw.matchAll(/\[\[REMEMBER\s+([^\]]+)\]\]/g)];
