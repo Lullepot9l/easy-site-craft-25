@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Gamepad2, Pencil, Server, Sparkles, MessageSquare, CalendarDays } from "lucide-react";
+import { Gamepad2, Pencil, Server, Sparkles, MessageSquare, CalendarDays, Copy, IdCard, Trophy, Coins } from "lucide-react";
+import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 import { AvatarBubble } from "@/components/AvatarBubble";
 import { NAME_COLORS, NAME_FONTS, optionClass, statusMeta } from "@/lib/profile-style";
@@ -25,6 +26,20 @@ function ProfilePage() {
   const joined = profile?.created_at ?? user?.created_at;
   const games = profile?.favorite_games ?? [];
   const servers = profile?.mutual_servers ?? [];
+  const friendId = profile?.account_id ?? null;
+  const level = profile?.level ?? 1;
+  const xp = profile?.xp ?? 0;
+  const xpPct = Math.min(100, Math.round(((xp % 1000) / 1000) * 100));
+
+  const copyFriendId = async () => {
+    if (!friendId) return;
+    try {
+      await navigator.clipboard.writeText(friendId);
+      toast.success("ID de amizade copiado 🌑 — manda pro seu mano adicionar você.");
+    } catch {
+      toast.error("Não deu pra copiar, seleciona o ID na mão.");
+    }
+  };
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-fade-in-up">
@@ -55,6 +70,38 @@ function ProfilePage() {
           <p className="mt-4 text-sm text-muted-foreground whitespace-pre-wrap">
             {profile?.bio || "Sem descrição ainda — escreve algo nas Configurações pras pessoas te conhecerem."}
           </p>
+
+          <div className="mt-4 glass rounded-xl p-4 flex items-center justify-between gap-3 flex-wrap hover-lift">
+            <div className="min-w-0">
+              <div className="text-[10px] font-mono uppercase tracking-wider text-[oklch(0.6_0.15_295)] mb-1 flex items-center gap-1.5">
+                <IdCard className="h-3 w-3" /> ID de amizade
+              </div>
+              <div className="font-mono text-lg neon-text-magenta truncate select-all">
+                {friendId ?? "gerando…"}
+              </div>
+              <p className="text-[10px] font-mono text-muted-foreground mt-1">
+                Compartilhe esse código pra outras pessoas te acharem em Amigos / DMs.
+              </p>
+            </div>
+            <button onClick={copyFriendId} disabled={!friendId}
+              className="btn-neon px-4 py-2 rounded-lg text-xs font-display flex items-center gap-2 disabled:opacity-40">
+              <Copy className="h-3 w-3" /> Copiar ID
+            </button>
+          </div>
+
+          <div className="mt-4 glass rounded-xl p-4">
+            <div className="flex items-center justify-between text-[11px] font-mono mb-2">
+              <span className="flex items-center gap-1.5"><Trophy className="h-3 w-3 neon-text-magenta" /> Nível {level}</span>
+              <span className="flex items-center gap-1.5 text-muted-foreground">
+                {xp} XP · <Coins className="h-3 w-3" /> {profile?.coins ?? 0}
+              </span>
+            </div>
+            <div className="h-2 rounded-full bg-black/40 overflow-hidden">
+              <div className="h-full rounded-full bg-gradient-to-r from-[oklch(0.65_0.25_295)] to-[oklch(0.75_0.28_330)] transition-all duration-700"
+                style={{ width: `${xpPct}%` }} />
+            </div>
+            <p className="text-[10px] font-mono text-muted-foreground mt-1.5">{xpPct}% pro próximo nível</p>
+          </div>
 
           <div className="mt-4 grid sm:grid-cols-2 gap-3">
             <Card title="Status de atividade">

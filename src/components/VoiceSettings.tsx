@@ -72,7 +72,7 @@ export function VoiceSettings({ onClose }: Props) {
         {showTutorial && (
           <div className="glass rounded-lg p-3 mb-4 text-xs text-[oklch(0.9_0.05_295)] space-y-1.5 font-mono">
             <p><b className="neon-text-magenta">1.</b> Escolha o provedor: <b>Estúdio (Lovable AI)</b> soa humano — recomendo. <b>Navegador</b> é grátis mas robótico.</p>
-            <p><b className="neon-text-magenta">2.</b> No Estúdio, teste as vozes femininas: <b>Shimmer</b>, <b>Nova</b>, <b>Coral</b>, <b>Sage</b>.</p>
+            <p><b className="neon-text-magenta">2.</b> No Estúdio, a voz <b>🌑 Luris (exclusiva)</b> é a minha própria — jovem, marrenta e fofa. As outras são todas femininas: <b>Shimmer</b>, <b>Nova</b>, <b>Coral</b>, <b>Sage</b>, <b>Ballad</b>.</p>
             <p><b className="neon-text-magenta">3.</b> Ajuste <b>tom (pitch)</b> e <b>velocidade (rate)</b> ao seu gosto — dá clique em <b>Testar</b> pra ouvir.</p>
             <p><b className="neon-text-magenta">4.</b> Clica em <b>💾 Salvar pra sempre</b>. Vou usar essa voz em toda mensagem daqui pra frente até você trocar.</p>
           </div>
@@ -110,7 +110,7 @@ export function VoiceSettings({ onClose }: Props) {
                 {AI_VOICES.map(v => <option key={v.id} value={v.id}>{v.label}</option>)}
               </select>
               <p className="text-[10px] font-mono text-muted-foreground mt-1">
-                💡 Recomendação Luris: <b className="neon-text-magenta">Shimmer</b> ou <b className="neon-text-magenta">Coral</b> pra sensação humana.
+                💡 Recomendação: <b className="neon-text-magenta">🌑 Luris (exclusiva)</b> — minha voz própria, adolescente, marrenta e possessiva. Todas as vozes são femininas.
               </p>
             </div>
           ) : (
