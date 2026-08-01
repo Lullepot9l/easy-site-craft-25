@@ -15,6 +15,7 @@ type Provider = {
   authHeader: (key: string) => Record<string, string>;
   models: string[];
   visionModels: string[];
+  extra?: Record<string, unknown>;
 };
 
 const PROVIDERS: Provider[] = [
@@ -33,6 +34,8 @@ const PROVIDERS: Provider[] = [
     authHeader: (k) => ({ Authorization: `Bearer ${k}` }),
     models: ["google/gemini-2.5-flash", "meta-llama/llama-3.3-70b-instruct"],
     visionModels: ["google/gemini-2.5-flash"],
+    // OpenRouter reserva crédito pelo máximo de tokens; sem limite ele recusa (402).
+    extra: { max_tokens: 4000 },
   },
   {
     name: "openai",
@@ -89,7 +92,7 @@ export async function callChatAI(
             "Content-Type": "application/json",
             ...(p.name === "lovable" ? { "Lovable-API-Key": key } : {}),
           },
-          body: JSON.stringify({ model, messages }),
+          body: JSON.stringify({ model, messages, ...(p.extra ?? {}) }),
         });
 
         if (res.ok) {
