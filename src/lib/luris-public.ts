@@ -71,41 +71,14 @@ async function getStudioSystem() {
 }
 
 export async function callLurisAI(messages: ChatMessage[], opts: { timeoutMs?: number; discord?: boolean } = {}) {
-  const key = process.env.LOVABLE_API_KEY;
-  if (!key) return { content: "⚠️ IA indisponível: LOVABLE_API_KEY ausente.", error: "missing_ai_key" as string | null };
-
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), opts.timeoutMs ?? 14000);
-  try {
-    const system = opts.discord
-      ? DISCORD_SYSTEM_PROMPT
-      : await getStudioSystem();
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      signal: ctrl.signal,
-      headers: {
-        "Lovable-API-Key": key,
-        "Content-Type": "application/json",
-        "X-Lovable-AIG-SDK": "luris-public-route",
-      },
-      body: JSON.stringify({
-        model: opts.discord ? "google/gemini-3.1-flash-lite" : "google/gemini-3.5-flash",
-        messages: [{ role: "system", content: system }, ...messages],
-      }),
-    });
-    if (res.status === 402) return { content: "⚠️ A Luris está fora do ar por limite diário do servidor de IA. Volta sozinho no próximo ciclo — não gasta nada da sua conta.", error: "ai_unavailable" };
-    if (res.status === 429) return { content: "⚠️ Fila cheia agora. Tenta de novo em alguns segundos.", error: "rate_limited" };
-    if (!res.ok) return { content: `⚠️ IA erro ${res.status}.`, error: `ai_${res.status}` };
-    const out = await res.json() as { choices?: Array<{ message?: { content?: string } }> };
-    return { content: out.choices?.[0]?.message?.content?.trim() || "(sem resposta)", error: null as string | null };
-  } catch (e: any) {
-    return {
-      content: e?.name === "AbortError" ? "⏱️ A IA demorou demais. Tenta uma pergunta menor." : `⚠️ IA falhou: ${e?.message ?? e}`,
-      error: e?.name === "AbortError" ? "timeout" : "ai_failed",
-    };
-  } finally {
-    clearTimeout(timer);
-  }
+  const { callChatAI } = await import("@/lib/ai-providers.server");
+  const system = opts.discord ? DISCORD_SYSTEM_PROMPT : await getStudioSystem();
+  const ai = await callChatAI(
+    [{ role: "system", content: system }, ...messages],
+    { timeoutMs: opts.timeoutMs ?? 14000 },
+  );
+  if (ai.error) return { content: `⚠️ ${ai.error}`, error: "ai_unavailable" as string | null };
+  return { content: ai.content || "(sem resposta)", error: null as string | null };
 }
 
 export async function handleLurisChat(request: Request, openAiLike = false) {
