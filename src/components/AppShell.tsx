@@ -2,7 +2,7 @@ import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import {
   LayoutDashboard, MessageSquare, Image as ImgIcon, Users, ShoppingBag,
   Code2, Gamepad2, Crown, FileDown, LogOut, Sparkles, Globe, Terminal, Zap,
-  Flame, Infinity as InfinityIcon, ChevronDown, Heart, Settings2, IdCard,
+  Flame, Infinity as InfinityIcon, ChevronDown, Heart, Settings2, IdCard, Compass,
 } from "lucide-react";
 import { useEffect, useState, type ReactNode, type ComponentType } from "react";
 import { Menu, X } from "lucide-react";
@@ -30,6 +30,7 @@ const HUB_NAV_KEYS = [
 ] as const;
 
 const COMMUNITY_NAV: NavItem[] = [
+  { to: "/servers", icon: Compass, label: "Servidores" },
   { to: "/friends", icon: Heart, label: "Amigos / DMs" },
 ];
 
