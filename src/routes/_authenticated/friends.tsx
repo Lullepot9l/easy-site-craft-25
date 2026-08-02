@@ -261,7 +261,20 @@ function FriendsView({ userId }: { userId: string }) {
       <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-4">
         {/* Sidebar */}
         <aside className="glass-strong rounded-xl p-3 space-y-4 h-[70vh] overflow-y-auto">
-          <div>
+          <div className="grid grid-cols-3 gap-1">
+            {([
+              ["friends", `Amigos ${friends.length}`],
+              ["pending", `Pendentes ${requests.length + sent.length}`],
+              ["search", "Buscar"],
+            ] as const).map(([k, label]) => (
+              <button key={k} onClick={() => setTab(k)}
+                className={`py-1.5 rounded-lg text-[10px] font-display truncate ${tab === k ? "btn-neon" : "glass"}`}>
+                {label}
+              </button>
+            ))}
+          </div>
+
+          <div className={tab === "search" ? "" : "hidden"}>
             <div className="flex gap-1">
               <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === "Enter" && searchUsers()}
                 placeholder="Buscar usuário..." className="glass flex-1 px-2 py-1.5 rounded text-xs font-mono" />
@@ -278,11 +291,18 @@ function FriendsView({ userId }: { userId: string }) {
                 ))}
               </div>
             )}
+            {results.length === 0 && (
+              <div className="mt-2 text-[10px] font-mono text-muted-foreground px-1">
+                Busque por nome, @usuário ou peça o ID de amizade do perfil.
+              </div>
+            )}
           </div>
 
-          {requests.length > 0 && (
-            <div>
+          {tab === "pending" && (
+            <div className="space-y-3">
+              <div>
               <div className="text-[10px] uppercase font-mono text-[oklch(0.7_0.2_330)] mb-1 px-1">Pedidos ({requests.length})</div>
+              {requests.length === 0 && <div className="text-xs text-muted-foreground px-1">Nenhum pedido recebido.</div>}
               {requests.map((r) => (
                 <div key={r.id} className="flex items-center gap-2 p-1.5 rounded glass mb-1">
                   <AvatarBubble url={r.other.avatar_url} name={r.other.display_name} size={28} effect={r.other.equipped_effect} />
@@ -291,18 +311,40 @@ function FriendsView({ userId }: { userId: string }) {
                   <button onClick={() => respond(r, false)} className="p-1 rounded bg-[oklch(0.3_0.2_25/0.4)]"><X className="h-3 w-3" /></button>
                 </div>
               ))}
+              </div>
+              <div>
+                <div className="text-[10px] uppercase font-mono text-[oklch(0.65_0.15_295)] mb-1 px-1">Enviados ({sent.length})</div>
+                {sent.length === 0 && <div className="text-xs text-muted-foreground px-1">Nenhum pedido enviado.</div>}
+                {sent.map((s) => (
+                  <div key={s.id} className="flex items-center gap-2 p-1.5 rounded glass mb-1">
+                    <AvatarBubble url={s.other.avatar_url} name={s.other.display_name} size={28} effect={s.other.equipped_effect} />
+                    <div className="flex-1 min-w-0 text-xs truncate">{s.other.display_name}</div>
+                    <span className="text-[9px] font-mono text-muted-foreground">aguardando</span>
+                    <button onClick={() => cancelRequest(s)} className="p-1 rounded bg-[oklch(0.3_0.2_25/0.4)]"><X className="h-3 w-3" /></button>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
-          <div>
+          <div className={tab === "friends" ? "" : "hidden"}>
             <div className="text-[10px] uppercase font-mono text-[oklch(0.7_0.2_295)] mb-1 px-1">Amigos ({friends.length})</div>
             {friends.length === 0 && <div className="text-xs text-muted-foreground px-1">Nenhum ainda.</div>}
             {friends.map((f) => (
-              <button key={f.id} onClick={() => setActive(f.other)}
-                className={`w-full flex items-center gap-2 p-1.5 rounded mb-1 transition ${active?.id === f.other.id ? "bg-[oklch(0.3_0.25_330/0.4)]" : "hover:bg-[oklch(0.2_0.1_295/0.3)]"}`}>
-                <AvatarBubble url={f.other.avatar_url} name={f.other.display_name} size={28} effect={f.other.equipped_effect} />
-                <div className="flex-1 min-w-0 text-xs truncate text-left">{f.other.display_name}</div>
-              </button>
+              <div key={f.id} className={`flex items-center gap-1 rounded mb-1 transition ${active?.id === f.other.id ? "bg-[oklch(0.3_0.25_330/0.4)]" : "hover:bg-[oklch(0.2_0.1_295/0.3)]"}`}>
+                <button onClick={() => setActive(f.other)} className="flex-1 min-w-0 flex items-center gap-2 p-1.5">
+                  <AvatarBubble url={f.other.avatar_url} name={f.other.display_name} size={28} effect={f.other.equipped_effect} />
+                  <div className="flex-1 min-w-0 text-left">
+                    <div className="text-xs truncate">{f.other.display_name}</div>
+                    <div className="text-[9px] font-mono text-muted-foreground truncate">
+                      {f.other.current_game ? `🎮 ${f.other.current_game}` : `@${f.other.username ?? "user"}`}
+                    </div>
+                  </div>
+                </button>
+                <button onClick={() => removeFriend(f)} title="Remover amizade" className="p-1 mr-1 rounded text-[oklch(0.7_0.2_25)] opacity-60 hover:opacity-100">
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
             ))}
           </div>
         </aside>
