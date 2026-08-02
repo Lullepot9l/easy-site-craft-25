@@ -65,6 +65,8 @@ function Page() {
 function FriendsView({ userId }: { userId: string }) {
   const [friends, setFriends] = useState<(Friendship & { other: MiniProfile })[]>([]);
   const [requests, setRequests] = useState<(Friendship & { other: MiniProfile })[]>([]);
+  const [sent, setSent] = useState<(Friendship & { other: MiniProfile })[]>([]);
+  const [tab, setTab] = useState<"friends" | "pending" | "search">("friends");
   const [search, setSearch] = useState("");
   const [results, setResults] = useState<MiniProfile[]>([]);
   const [active, setActive] = useState<MiniProfile | null>(null);
@@ -114,6 +116,7 @@ function FriendsView({ userId }: { userId: string }) {
     }));
     setFriends(enriched.filter((f) => f.status === "accepted"));
     setRequests(enriched.filter((f) => f.status === "pending" && f.addressee_id === userId));
+    setSent(enriched.filter((f) => f.status === "pending" && f.requester_id === userId));
   }
 
   async function loadTheme() {
@@ -157,6 +160,19 @@ function FriendsView({ userId }: { userId: string }) {
     });
     if (error) return toast.error(error.message);
     toast.success(`Pedido enviado para ${other.display_name}`);
+    void loadFriends();
+  }
+
+  async function cancelRequest(f: Friendship) {
+    await supabase.from("friendships").delete().eq("id", f.id);
+    toast.success("Pedido cancelado");
+    void loadFriends();
+  }
+
+  async function removeFriend(f: Friendship) {
+    await supabase.from("friendships").delete().eq("id", f.id);
+    if (active) setActive(null);
+    toast.success("Amizade removida");
     void loadFriends();
   }
 
