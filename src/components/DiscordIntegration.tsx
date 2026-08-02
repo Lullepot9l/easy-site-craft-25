@@ -80,6 +80,7 @@ export function DiscordIntegration({ ownerId }: { ownerId: string }) {
   const [tab, setTab] = useState<Tab>("tutorial");
   const [cfg, setCfg] = useState<Config>(DEFAULT_CFG);
   const [loading, setLoading] = useState(true);
+  const [status, setStatus] = useState<{ kind: "ok" | "err" | "load"; text: string } | null>(null);
   const [saving, setSaving] = useState(false);
   const [busy, setBusy] = useState(false);
 
