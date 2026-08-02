@@ -462,6 +462,20 @@ export function DiscordIntegration({ ownerId }: { ownerId: string }) {
 
   return (
     <div className="space-y-4">
+      <div className="glass-strong rounded-xl p-3 flex items-center gap-3 flex-wrap">
+        <span className={`h-2.5 w-2.5 rounded-full ${
+          status?.kind === "ok" ? "bg-[oklch(0.75_0.2_150)]"
+          : status?.kind === "err" ? "bg-[oklch(0.65_0.25_25)]"
+          : status?.kind === "load" ? "bg-[oklch(0.8_0.2_90)] animate-pulse"
+          : "bg-muted"}`} />
+        <span className="text-xs font-mono flex-1 min-w-[10rem] text-muted-foreground">
+          {status?.text ?? "Bot desconectado — cole o Bot Token na aba Configuração."}
+        </span>
+        <button onClick={reloadAll} disabled={busy}
+          className="glass px-3 py-1.5 rounded-lg text-xs font-mono flex items-center gap-2 hover-lift disabled:opacity-50">
+          <RefreshCw className={`h-3.5 w-3.5 ${busy ? "animate-spin" : ""}`} /> Reconectar & recarregar tudo
+        </button>
+      </div>
       <div className="flex gap-2 flex-wrap">
         {TABS.map(([id, label, Icon]) => (
           <button key={id} onClick={() => setTab(id)}
