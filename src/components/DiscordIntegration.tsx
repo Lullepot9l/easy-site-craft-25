@@ -139,7 +139,7 @@ export function DiscordIntegration({ ownerId }: { ownerId: string }) {
         .select("*").eq("owner_id", ownerId).maybeSingle();
       if (data) {
         const d = data as any;
-        setCfg({ ...DEFAULT_CFG, ...d, bot_tags: d.bot_tags ?? [] });
+        setCfg(normalizeCfg(d));
         setGuilds(d.saved_guilds ?? []);
         setChannels(d.saved_channels ?? []);
         setCommands(d.saved_commands ?? []);
@@ -154,9 +154,9 @@ export function DiscordIntegration({ ownerId }: { ownerId: string }) {
     const merged = { ...cfg, ...(partial || {}) };
     const { error } = await supabase
       .from("owner_discord_config" as any)
-      .upsert({ ...merged, owner_id: ownerId }, { onConflict: "owner_id" });
+      .upsert({ ...pickCfgColumns(merged), owner_id: ownerId }, { onConflict: "owner_id" });
     setSaving(false);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); setStatus({ kind: "err", text: `Falha ao salvar: ${error.message}` }); return; }
     if (partial) setCfg(merged);
     toast.success("Salvo 🐉");
   }
@@ -170,7 +170,11 @@ export function DiscordIntegration({ ownerId }: { ownerId: string }) {
     return false;
   }
   function needApp() {
-    if (!cfg.client_id) { toast.error("Configure o Client ID"); return true; }
+    if (!cfg.client_id) {
+      if (botInfo?.id) { setCfg((c) => ({ ...c, client_id: botInfo.id })); return false; }
+      toast.error("Configure o Client ID (ou conecte o bot para detectar automático)");
+      return true;
+    }
     return false;
   }
 
@@ -185,19 +189,64 @@ export function DiscordIntegration({ ownerId }: { ownerId: string }) {
   useEffect(() => {
     if (loading || !cfg.bot_token || cfg.bot_token.length < 20) return;
     (async () => {
+      setStatus({ kind: "load", text: "Conectando ao Discord…" });
       try {
         const info = await fnTest({ data: { token: cfg.bot_token } });
         setBotInfo(info);
+        if (!cfg.client_id && info?.id) setCfg((c) => ({ ...c, client_id: info.id }));
         const app = await fnGetApp({ data: { token: cfg.bot_token } });
         setAppInfo(app);
         if (!cfg.bot_description && app.description) {
           setCfg((c) => ({ ...c, bot_description: app.description, bot_tags: app.tags ?? [] }));
           setTagsInput((app.tags ?? []).join(", "));
         }
-      } catch { /* silent */ }
+        setStatus({ kind: "ok", text: `Conectado como ${info?.username ?? "bot"}` });
+      } catch (e: any) {
+        setStatus({ kind: "err", text: `Não conectou: ${e?.message || String(e)} — confira o Bot Token (Reset Token) e os Privileged Intents.` });
+      }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, cfg.bot_token]);
+
+  /** Reconnect + reload everything the panel needs in one shot. */
+  async function reloadAll() {
+    if (needToken()) return;
+    setBusy(true);
+    setStatus({ kind: "load", text: "Recarregando tudo…" });
+    try {
+      const info = await fnTest({ data: { token: cfg.bot_token } });
+      setBotInfo(info);
+      const appId = cfg.client_id || info?.id || "";
+      const app = await fnGetApp({ data: { token: cfg.bot_token } }).catch(() => null);
+      if (app) setAppInfo(app);
+      const gs = await fnGuilds({ data: { token: cfg.bot_token } }).catch(() => []);
+      setGuilds(gs as any[]);
+      const guildId = cfg.guild_id || (gs as any[])[0]?.id || "";
+      let cs: any[] = [];
+      if (guildId) {
+        cs = (await fnChannels({ data: { token: cfg.bot_token, guildId } }).catch(() => [])) as any[];
+        setChannels(cs);
+        setRoles((await fnRoles({ data: { token: cfg.bot_token, guildId } }).catch(() => [])) as any[]);
+        setMembers((await fnMembers({ data: { token: cfg.bot_token, guildId, limit: 1000 } }).catch(() => [])) as any[]);
+      }
+      let cmds: any[] = [];
+      if (appId) cmds = (await fnListCmd({ data: { token: cfg.bot_token, applicationId: appId } }).catch(() => [])) as any[];
+      if (cmds.length) setCommands(cmds);
+      const merged: Config = {
+        ...cfg, client_id: appId, guild_id: guildId,
+        default_channel_id: cfg.default_channel_id || cs.find((c) => c.type === 0)?.id || "",
+        saved_guilds: gs as any[], saved_channels: cs, saved_commands: cmds.length ? cmds : cfg.saved_commands,
+      };
+      setCfg(merged);
+      await supabase.from("owner_discord_config" as any)
+        .upsert({ ...pickCfgColumns(merged), owner_id: ownerId }, { onConflict: "owner_id" });
+      setStatus({ kind: "ok", text: `${info.username} · ${(gs as any[]).length} servidor(es) · ${cs.length} canal(is) · ${cmds.length} comando(s)` });
+      toast.success("Discord sincronizado 🐉");
+    } catch (e: any) {
+      setStatus({ kind: "err", text: e?.message || String(e) });
+      toast.error(e?.message || String(e));
+    } finally { setBusy(false); }
+  }
 
   /* ---------- profile ---------- */
   async function loadBot() {
