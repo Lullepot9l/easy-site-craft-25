@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Download, Smartphone, MonitorDown } from "lucide-react";
+import { Download, Smartphone, MonitorDown, Apple, Bot } from "lucide-react";
 import lurisWinZip from "@/assets/Luris-Windows.zip.asset.json";
 
 
@@ -14,6 +14,7 @@ export function InstallApp({ className = "" }: { className?: string }) {
   const [isIOS, setIsIOS] = useState(false);
   const [showIOSHelp, setShowIOSHelp] = useState(false);
   const [showWin, setShowWin] = useState(false);
+  const [mobileHelp, setMobileHelp] = useState<null | "ios" | "android">(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -67,6 +68,32 @@ export function InstallApp({ className = "" }: { className?: string }) {
         </button>
         <button
           type="button"
+          onClick={() => setMobileHelp("ios")}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg glass hover-lift font-display text-sm"
+          title="Baixar Luris no iPhone / iPad"
+        >
+          <Apple size={16} />
+          Baixar para iPhone
+        </button>
+        <button
+          type="button"
+          onClick={async () => {
+            if (deferred) {
+              await deferred.prompt();
+              await deferred.userChoice;
+              setDeferred(null);
+              return;
+            }
+            setMobileHelp("android");
+          }}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg glass hover-lift font-display text-sm"
+          title="Baixar Luris no Android"
+        >
+          <Bot size={16} />
+          Baixar para Android
+        </button>
+        <button
+          type="button"
           onClick={() => setShowWin(true)}
           className="inline-flex items-center gap-2 px-4 py-2 rounded-lg btn-neon font-display text-sm glow-purple"
           title="Baixar aplicativo desktop para Windows (.exe)"
@@ -75,6 +102,34 @@ export function InstallApp({ className = "" }: { className?: string }) {
           Baixar para Windows (.exe)
         </button>
       </div>
+
+      {mobileHelp && (
+        <div onClick={() => setMobileHelp(null)} className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4">
+          <div onClick={(e) => e.stopPropagation()} className="glass-strong rounded-2xl p-6 max-w-sm w-full text-sm space-y-3">
+            <h3 className="font-display text-lg gradient-text">
+              {mobileHelp === "ios" ? "Luris no iPhone / iPad" : "Luris no Android"}
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              O app da Luris instala direto do navegador (PWA) — ícone na tela inicial, tela cheia e sem barra do navegador.
+            </p>
+            {mobileHelp === "ios" ? (
+              <ol className="list-decimal pl-5 space-y-1 text-muted-foreground text-xs">
+                <li>Abra <b>luris-ia.lovable.app</b> no <b>Safari</b>.</li>
+                <li>Toque em <b>Compartilhar</b> (▲).</li>
+                <li>Escolha <b>Adicionar à Tela de Início</b>.</li>
+                <li>Toque em <b>Adicionar</b> — pronto, virou app.</li>
+              </ol>
+            ) : (
+              <ol className="list-decimal pl-5 space-y-1 text-muted-foreground text-xs">
+                <li>Abra <b>luris-ia.lovable.app</b> no <b>Chrome</b>.</li>
+                <li>Menu <b>⋮</b> → <b>Instalar aplicativo</b> (ou <b>Adicionar à tela inicial</b>).</li>
+                <li>Confirme <b>Instalar</b> — a Luris abre como app nativo.</li>
+              </ol>
+            )}
+            <button onClick={() => setMobileHelp(null)} className="w-full py-2 btn-neon rounded-lg font-display text-sm">Fechar</button>
+          </div>
+        </div>
+      )}
 
       {showWin && (
         <div onClick={() => setShowWin(false)} className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4">
