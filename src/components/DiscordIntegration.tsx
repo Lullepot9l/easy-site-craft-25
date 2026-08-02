@@ -52,6 +52,30 @@ async function fileToDataUri(file: File): Promise<string> {
   });
 }
 
+const CFG_COLUMNS = [
+  "bot_token", "client_id", "public_key", "guild_id", "default_channel_id",
+  "bot_name", "bot_status", "activity_type", "activity_text",
+  "auto_respond", "ai_persona", "bot_description", "bot_tags",
+  "saved_commands", "saved_guilds", "saved_channels",
+] as const;
+
+/** Nulls coming from the DB break controlled inputs and make the panel look "dead". */
+function normalizeCfg(row: any): Config {
+  const out: any = { ...DEFAULT_CFG };
+  for (const k of CFG_COLUMNS) {
+    const v = row?.[k];
+    if (v === null || v === undefined) continue;
+    out[k] = v;
+  }
+  return out as Config;
+}
+
+function pickCfgColumns(cfg: Config) {
+  const out: any = {};
+  for (const k of CFG_COLUMNS) out[k] = (cfg as any)[k];
+  return out;
+}
+
 export function DiscordIntegration({ ownerId }: { ownerId: string }) {
   const [tab, setTab] = useState<Tab>("tutorial");
   const [cfg, setCfg] = useState<Config>(DEFAULT_CFG);
