@@ -854,6 +854,166 @@ export type Database = {
         }
         Relationships: []
       }
+      server_channels: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          name: string
+          position: number
+          server_id: string
+          topic: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind?: string
+          name: string
+          position?: number
+          server_id: string
+          topic?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          name?: string
+          position?: number
+          server_id?: string
+          topic?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "server_channels_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "servers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      server_members: {
+        Row: {
+          id: string
+          joined_at: string
+          role: string
+          server_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          joined_at?: string
+          role?: string
+          server_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          joined_at?: string
+          role?: string
+          server_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "server_members_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "servers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      server_messages: {
+        Row: {
+          attachment_type: string | null
+          attachment_url: string | null
+          channel_id: string
+          content: string
+          created_at: string
+          id: string
+          server_id: string
+          user_id: string
+        }
+        Insert: {
+          attachment_type?: string | null
+          attachment_url?: string | null
+          channel_id: string
+          content: string
+          created_at?: string
+          id?: string
+          server_id: string
+          user_id: string
+        }
+        Update: {
+          attachment_type?: string | null
+          attachment_url?: string | null
+          channel_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          server_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "server_messages_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "server_channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "server_messages_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "servers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      servers: {
+        Row: {
+          banner_url: string | null
+          created_at: string
+          description: string | null
+          icon_url: string | null
+          id: string
+          invite_code: string
+          is_public: boolean
+          name: string
+          owner_id: string
+          tag: string | null
+          updated_at: string
+        }
+        Insert: {
+          banner_url?: string | null
+          created_at?: string
+          description?: string | null
+          icon_url?: string | null
+          id?: string
+          invite_code?: string
+          is_public?: boolean
+          name: string
+          owner_id: string
+          tag?: string | null
+          updated_at?: string
+        }
+        Update: {
+          banner_url?: string | null
+          created_at?: string
+          description?: string | null
+          icon_url?: string | null
+          id?: string
+          invite_code?: string
+          is_public?: boolean
+          name?: string
+          owner_id?: string
+          tag?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       social_posts: {
         Row: {
           content: string
@@ -1302,6 +1462,14 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      is_server_member: {
+        Args: { _server_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_server_owner: {
+        Args: { _server_id: string; _user_id: string }
         Returns: boolean
       }
     }
