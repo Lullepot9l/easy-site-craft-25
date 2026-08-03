@@ -267,6 +267,11 @@ function OwnerPanel() {
       )}
 
       {/* Phases viraram páginas próprias no menu lateral (owner-only). */}
+      {visible.some(c => c.id === "mind") && (
+        <CategorySection id="mind" label="Mente da Luris · sentimentos & memória" icon={BrainCircuit} open={open.mind} onToggle={() => toggle("mind")}>
+          <LurisMind />
+        </CategorySection>
+      )}
 
 
 
