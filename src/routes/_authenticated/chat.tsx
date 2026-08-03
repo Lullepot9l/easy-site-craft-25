@@ -34,6 +34,17 @@ const ROLE_LABEL: Record<string, { label: string; icon: typeof Crown; color: str
 const WELCOME_USER: Msg = { role: "assistant", content: "Oi! Sou a **Luris** ✨. Bora conversar? Me pergunta o que quiser — posso te ajudar com ideias, textos e mais." };
 const WELCOME_OWNER: Msg = { role: "assistant", content: "Eae Lulle 🌑✨ tô aqui. O que a gente vai fazer hoje?" };
 
+// Detecta pedido de imagem direto no chat (sem precisar trocar de modo/aba)
+const IMG_INTENT =
+  /^\s*(?:luris[,\s]*)?(?:pode\s+)?(?:me\s+)?(?:desenh\w+|ilustr\w+|gera\w*|cri\w+|faz\w*|fa[çc]a|manda\w*|mostra\w*)\s+(?:(?:uma?|um|o|a|esse|essa)\s+)?(?:imagem|imagens|foto|fotos|arte|desenho|ilustra[çc][ãa]o|logo|logotipo|wallpaper|papel de parede|capa|banner|mang[áa]|anime|thumbnail|icone|ícone|avatar|poster|p[ôo]ster)\b[:,\s]*(.*)$/i;
+
+function extractImagePrompt(text: string): string | null {
+  const m = text.match(IMG_INTENT);
+  if (!m) return null;
+  const rest = (m[1] ?? "").replace(/^(de|do|da|com|sobre|que|pra|para)\s+/i, "").trim();
+  return rest.length >= 3 ? rest : text.trim();
+}
+
 function ChatPage() {
   const { user, role, profile, isOwner } = useAuth();
   const send = useServerFn(chatLuris);
@@ -173,11 +184,13 @@ ${messages.map(m => `<div class="msg ${m.role}"><div class="role">${m.role === "
     if (loading || !user) return;
     if (!input.trim() && attachedImages.length === 0 && !imgMode) return;
 
-    // ---------- MODO GERAR IMAGEM ----------
-    if (imgMode) {
-      const prompt = input.trim();
+    // ---------- MODO GERAR IMAGEM (manual ou detectado automaticamente) ----------
+    const autoPrompt =
+      !imgMode && attachedImages.length === 0 ? extractImagePrompt(input) : null;
+    if (imgMode || autoPrompt) {
+      const prompt = autoPrompt ?? input.trim();
       if (!prompt) { toast.error("Escreva o que a Luris deve desenhar"); return; }
-      const userMsg: Msg = { role: "user", content: `🎨 gerar imagem: ${prompt}` };
+      const userMsg: Msg = { role: "user", content: autoPrompt ? input.trim() : `🎨 gerar imagem: ${prompt}` };
       setMessages((m) => [...m, userMsg]);
       setInput(""); setImgMode(false); setLoading(true);
       try {
@@ -185,6 +198,7 @@ ${messages.map(m => `<div class="msg ${m.role}"><div class="role">${m.role === "
         if (res.error) { toast.error(res.error); return; }
         setMessages((m) => [...m, { role: "assistant", content: "Prontinho 🌑✨", imageUrl: res.image_url }]);
         pingSound();
+        if (voiceOn) speak("Prontinho, desenhei pra você.");
       } catch (err) {
         toast.error(err instanceof Error ? err.message : "Erro gerando imagem");
       } finally { setLoading(false); }
@@ -481,12 +495,10 @@ ${messages.map(m => `<div class="msg ${m.role}"><div class="role">${m.role === "
                   className="w-full text-left px-3 py-2 rounded-lg hover:bg-[oklch(0.3_0.2_295/0.4)] flex items-center gap-2 text-xs font-mono">
                   <Upload className="h-3 w-3" /> Anexar imagem(ns) — até 4
                 </button>
-                {isOwner && (
-                  <button type="button" onClick={() => { setImgMode(true); setPlusOpen(false); }}
-                    className="w-full text-left px-3 py-2 rounded-lg hover:bg-[oklch(0.3_0.2_330/0.4)] flex items-center gap-2 text-xs font-mono">
-                    <ImgIcon className="h-3 w-3" /> Gerar imagem com IA
-                  </button>
-                )}
+                <button type="button" onClick={() => { setImgMode(true); setPlusOpen(false); }}
+                  className="w-full text-left px-3 py-2 rounded-lg hover:bg-[oklch(0.3_0.2_330/0.4)] flex items-center gap-2 text-xs font-mono">
+                  <ImgIcon className="h-3 w-3" /> Gerar imagem com IA
+                </button>
                 {isOwner && (!sharing ? (
                   <button type="button" onClick={() => { setPlusOpen(false); startShareScreen(); }}
                     className="w-full text-left px-3 py-2 rounded-lg hover:bg-[oklch(0.3_0.2_295/0.4)] flex items-center gap-2 text-xs font-mono">
@@ -499,7 +511,7 @@ ${messages.map(m => `<div class="msg ${m.role}"><div class="role">${m.role === "
                   </button>
                 ))}
                 <div className="px-3 pt-1 pb-0.5 text-[9px] text-muted-foreground font-mono">
-                  dica: você também pode <b>arrastar</b> imagens pra área do chat ou <b>colar</b> (Ctrl+V).
+                  dica: só pedir no chat — "desenha uma imagem de um dragão neon" — que ela já cria. Também pode <b>arrastar</b> ou <b>colar</b> (Ctrl+V).
                 </div>
               </div>
             )}
