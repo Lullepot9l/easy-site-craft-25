@@ -238,6 +238,8 @@ function FriendsView({ userId }: { userId: string }) {
         </button>
       </header>
 
+      <InviteFriends />
+
       {showTheme && (
         <div className="glass-strong rounded-xl p-4 grid grid-cols-1 md:grid-cols-4 gap-3 animate-fade-in-up">
           <label className="text-xs font-mono flex flex-col gap-1">Fundo (cor)
