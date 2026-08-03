@@ -34,6 +34,12 @@ export function InviteFriends() {
 
   useEffect(() => { load(); }, [load]);
 
+  // pré-preenche com o convite que veio no link (?invite=XXXX) salvo no login
+  useEffect(() => {
+    const pending = localStorage.getItem("luris.invite");
+    if (pending) setRedeem(pending);
+  }, []);
+
   async function create() {
     if (!user) return;
     setBusy(true);
@@ -93,6 +99,7 @@ export function InviteFriends() {
     await supabase.from("friendships").insert({ requester_id: inv.inviter_id, addressee_id: user.id, status: "accepted" });
 
     setBusy(false); setRedeem("");
+    localStorage.removeItem("luris.invite");
     toast.success(`Convite resgatado! Vocês já são amigos e cada um ganhou +${REWARD} 🪙`);
     load();
   }
