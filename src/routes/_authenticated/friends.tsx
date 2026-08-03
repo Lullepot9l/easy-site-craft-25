@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { InviteFriends } from "@/components/InviteFriends";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Check, Gamepad2, Heart, MessageCircle, Palette, Paperclip, Phone, Search, Send, X } from "lucide-react";
@@ -237,6 +238,8 @@ function FriendsView({ userId }: { userId: string }) {
           <Palette className="h-4 w-4" /> Tema
         </button>
       </header>
+
+      <InviteFriends />
 
       {showTheme && (
         <div className="glass-strong rounded-xl p-4 grid grid-cols-1 md:grid-cols-4 gap-3 animate-fade-in-up">

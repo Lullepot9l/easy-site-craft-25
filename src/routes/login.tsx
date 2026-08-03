@@ -24,6 +24,9 @@ function LoginPage() {
   useEffect(() => {
     const saved = localStorage.getItem(REMEMBER_KEY);
     if (saved) { setEmail(saved); setRemember(true); }
+    // guarda o código de convite (?invite=XXXX) pra resgatar depois do login
+    const code = new URLSearchParams(window.location.search).get("invite");
+    if (code) localStorage.setItem("luris.invite", code.toUpperCase());
   }, []);
 
   async function submit(e: React.FormEvent) {
