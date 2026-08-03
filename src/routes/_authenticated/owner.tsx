@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Crown, Shield, Users as UsersIcon, Activity, Terminal, Database, ArrowUp, ArrowDown, Sparkles, Coins, Search, ChevronDown, ChevronRight, Globe, Puzzle } from "lucide-react";
+import { Crown, Shield, Users as UsersIcon, Activity, Terminal, Database, ArrowUp, ArrowDown, Sparkles, Coins, Search, ChevronDown, ChevronRight, Globe, Puzzle, BrainCircuit } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth, type AppRole } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,6 +8,7 @@ import { AccessDenied, LoadingShield } from "@/components/AccessDenied";
 import { WebsiteBuilder } from "@/components/WebsiteBuilder";
 import { OwnerConsole } from "@/components/OwnerConsole";
 import { RobloxPlugin } from "@/components/RobloxPlugin";
+import { LurisMind } from "@/components/LurisMind";
 
 
 
@@ -93,12 +94,13 @@ function OwnerPanel() {
   const CATEGORIES = useMemo(() => ([
     { id: "users",     label: "Usuários & Acesso",      icon: UsersIcon,     group: "Core",     keywords: ["user","role","cargo","permissao","plano","usuario","coin"] },
     { id: "console",   label: "Console · Comandos",     icon: Terminal,      group: "Core",     keywords: ["console","comando","cmd","terminal","script","custom"] },
+    { id: "mind",      label: "Mente da Luris",         icon: BrainCircuit,  group: "Core",     keywords: ["mente","memoria","memória","sentimento","pensamento","personalidade","prompt","humor","ciume"] },
     
     { id: "sites",     label: "Sites & Builder",        icon: Globe,         group: "Builder",  keywords: ["site","website","builder","html","dominio","slug","chat","edit","seo","visual","voz","github","imagem"] },
     { id: "roblox",    label: "Roblox · Plugin Studio", icon: Puzzle,        group: "Builder",  keywords: ["roblox","plugin","studio","lua","rbxm","tutorial"] },
     { id: "logs",      label: "Logs & Sistema",         icon: Terminal,      group: "System",   keywords: ["log","sistema","status","gateway","monitor"] },
   ]), []);
-  const [open, setOpen] = useState<Record<string, boolean>>({ users: true, console: true, sites: true, roblox: true, logs: false });
+  const [open, setOpen] = useState<Record<string, boolean>>({ users: true, console: true, mind: true, sites: true, roblox: true, logs: false });
   const [globalSearch, setGlobalSearch] = useState("");
 
   function toggle(id: string) { setOpen(o => ({ ...o, [id]: !o[id] })); }
