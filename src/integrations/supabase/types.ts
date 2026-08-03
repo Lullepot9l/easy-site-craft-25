@@ -570,25 +570,70 @@ export type Database = {
         }
         Relationships: []
       }
+      invites: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          invited_id: string | null
+          inviter_id: string
+          redeemed: boolean
+          redeemed_at: string | null
+          reward_coins: number
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          invited_id?: string | null
+          inviter_id: string
+          redeemed?: boolean
+          redeemed_at?: string | null
+          reward_coins?: number
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          invited_id?: string | null
+          inviter_id?: string
+          redeemed?: boolean
+          redeemed_at?: string | null
+          reward_coins?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       luris_settings: {
         Row: {
+          extra_rules: string
+          feelings: string
           id: number
           personality: string
           system_prompt: string
+          thoughts: string
           updated_at: string
           voice_enabled: boolean
         }
         Insert: {
+          extra_rules?: string
+          feelings?: string
           id?: number
           personality?: string
           system_prompt?: string
+          thoughts?: string
           updated_at?: string
           voice_enabled?: boolean
         }
         Update: {
+          extra_rules?: string
+          feelings?: string
           id?: number
           personality?: string
           system_prompt?: string
+          thoughts?: string
           updated_at?: string
           voice_enabled?: boolean
         }
