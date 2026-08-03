@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { InviteFriends } from "@/components/InviteFriends";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Check, Gamepad2, Heart, MessageCircle, Palette, Paperclip, Phone, Search, Send, X } from "lucide-react";
