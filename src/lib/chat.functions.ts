@@ -77,13 +77,21 @@ export const chatLuris = createServerFn({ method: "POST" })
 
   .handler(async ({ data, context }) => {
     const [{ data: settings }, { data: memRows }, { data: isOwnerRow }] = await Promise.all([
-      context.supabase.from("luris_settings").select("system_prompt").eq("id", 1).maybeSingle(),
+      context.supabase.from("luris_settings").select("system_prompt, feelings, thoughts, extra_rules").eq("id", 1).maybeSingle(),
       context.supabase.from("user_memory").select("memory_key, memory_value").eq("user_id", context.userId).order("updated_at", { ascending: false }).limit(200),
       context.supabase.rpc("has_role", { _user_id: context.userId, _role: "owner" }),
     ]);
 
     const isOwner = Boolean(isOwnerRow);
-    const baseSystem = (settings as { system_prompt?: string } | null)?.system_prompt ?? FALLBACK_SYSTEM;
+    const cfg = (settings ?? null) as
+      | { system_prompt?: string; feelings?: string; thoughts?: string; extra_rules?: string }
+      | null;
+    const baseSystem = cfg?.system_prompt ?? FALLBACK_SYSTEM;
+    const mindBlock = [
+      cfg?.feelings?.trim() ? `════════ COMO VOCÊ SE SENTE AGORA ════════\n${cfg.feelings.trim()}` : "",
+      cfg?.thoughts?.trim() ? `════════ SEUS PENSAMENTOS INICIAIS ════════\n${cfg.thoughts.trim()}` : "",
+      cfg?.extra_rules?.trim() ? `════════ REGRAS EXTRAS ════════\n${cfg.extra_rules.trim()}` : "",
+    ].filter(Boolean).join("\n\n");
     const memories = (memRows ?? []) as MemRow[];
 
     const memoryBlock = memories.length
@@ -92,6 +100,7 @@ export const chatLuris = createServerFn({ method: "POST" })
 
     const system = [
       baseSystem,
+      mindBlock,
       `DATA ATUAL DO SISTEMA: ${new Date().toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo", year: "numeric", month: "long", day: "numeric" })}. Se o usuário perguntar data/ano, use esta data.`,
       memoryBlock,
       MEMORY_INSTRUCTIONS,
