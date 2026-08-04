@@ -556,3 +556,153 @@
   .fx-shadow::after { background: radial-gradient(circle, #000000cc 0%, transparent 70%); animation: fx-float-glow 3.5s ease-in-out infinite; }
   .fx-shadow::before { border: 2px solid #1a1a1a; box-shadow: 0 0 18px #000, inset 0 0 12px #000; }
 }
+
+/* ======= EFEITOS DE AURA v4 (marketplace) ======= */
+@layer utilities {
+  .fx-ring-anim::before {
+    padding: 3px; -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude;
+  }
+
+  .fx-dragon::before { background: conic-gradient(from 0deg, #ff3d00, #ffd000, #00e5ff, #ff3d00);
+    padding: 3px; -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude; animation: fx-spin 2.2s linear infinite;
+    filter: drop-shadow(0 0 12px #ff6a00); }
+  .fx-dragon::after { background: radial-gradient(circle, #ff6a0066 0%, transparent 70%); animation: fx-float-glow 2s ease-in-out infinite; }
+
+  .fx-angel::before { background: conic-gradient(from 0deg, #fffbe6, #ffe9a8, #ffffff, #fffbe6);
+    padding: 3px; -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude; animation: fx-spin 8s linear infinite;
+    filter: drop-shadow(0 0 14px #fff3b0); }
+  .fx-angel::after { background: radial-gradient(circle, #fff6cc77 0%, transparent 68%); animation: fx-float-glow 4.5s ease-in-out infinite; }
+
+  .fx-demon::before { background: repeating-conic-gradient(from 0deg, #ff003c 0 10deg, #1a0000 10deg 20deg);
+    padding: 3px; -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude; animation: fx-vortex-spin 3s linear infinite;
+    filter: drop-shadow(0 0 12px #ff003c); }
+
+  .fx-ocean::before { background: conic-gradient(from 0deg, #00c2ff, #003c8f, #7ef9ff, #00c2ff);
+    padding: 3px; -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude; animation: fx-spin 6.5s linear infinite;
+    filter: drop-shadow(0 0 10px #35c6ff); }
+  .fx-ocean::after { background: radial-gradient(circle, #0077ff55 0%, transparent 70%); animation: fx-float-glow 5s ease-in-out infinite; }
+
+  .fx-lavender::before { background: conic-gradient(from 0deg, #c4b5fd, #f5d0fe, #a78bfa, #c4b5fd);
+    padding: 3px; -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude; animation: fx-spin 7.5s linear infinite;
+    filter: drop-shadow(0 0 10px #c4b5fd); }
+
+  .fx-bubblegum::before { background: conic-gradient(from 0deg, #ff9ecb, #fff0f6, #ff5fa2, #ff9ecb);
+    padding: 4px; -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude; animation: fx-spin 4s linear infinite;
+    filter: drop-shadow(0 0 12px #ff8fc3); }
+  .fx-bubblegum::after { background: radial-gradient(circle, #ff7fbc55 0%, transparent 70%); animation: fx-heart-beat 1.2s ease-in-out infinite; }
+
+  .fx-thunder { animation: fx-elec 0.7s steps(2, end) infinite; border: 2px solid #eaf6ff; }
+  .fx-thunder::after { background: radial-gradient(circle, #7df9ff66 0%, transparent 70%); animation: fx-float-glow 0.9s ease-in-out infinite; }
+
+  .fx-plasma::before { background: conic-gradient(from 0deg, #ff00e0, #00fff2, #7c00ff, #ff00e0);
+    padding: 3px; -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude; animation: fx-spin 1.8s linear infinite;
+    filter: drop-shadow(0 0 14px #ff00e0); }
+
+  .fx-cosmos::before { background: radial-gradient(circle at 30% 20%, #fff 0 1px, transparent 2px),
+      radial-gradient(circle at 70% 60%, #fff 0 1px, transparent 2px),
+      conic-gradient(from 0deg, #1e1b4b, #4c1d95, #1e1b4b);
+    padding: 4px; -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude; animation: fx-spin 12s linear infinite;
+    filter: drop-shadow(0 0 12px #6d28d9); }
+
+  .fx-emerald-flow::before { background: conic-gradient(from 0deg, #00ffa3, #003d2b, #7cffc4, #00ffa3);
+    padding: 3px; -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude; animation: fx-spin 5.5s linear infinite;
+    filter: drop-shadow(0 0 10px #00ffa3); }
+
+  .fx-sunset::before { background: conic-gradient(from 0deg, #ff6f61, #ffb86c, #ff2e9a, #ff6f61);
+    padding: 3px; -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude; animation: fx-spin 6s linear infinite;
+    filter: drop-shadow(0 0 12px #ff8a5c); }
+
+  .fx-chrome::before { background: conic-gradient(from 0deg, #f8fafc, #94a3b8, #ffffff, #64748b, #f8fafc);
+    padding: 3px; -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude; animation: fx-spin 3.4s linear infinite;
+    filter: drop-shadow(0 0 10px #e2e8f0); }
+
+  .fx-luris-heart::before { background: conic-gradient(from 0deg, #ff3d9a, #7c3aed, #ff3d9a);
+    padding: 3px; -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude; animation: fx-spin 3s linear infinite;
+    filter: drop-shadow(0 0 12px #ff3d9a); }
+  .fx-luris-heart::after { background: radial-gradient(circle, #ff3d9a55 0%, transparent 70%); animation: fx-heart-beat 1s ease-in-out infinite; }
+}
+
+/* ======= NOVOS ESTILOS DE NOME ======= */
+@layer utilities {
+  .name-aurora {
+    background: linear-gradient(90deg, #7ef9ff, #a855f7, #00ffa3, #7ef9ff);
+    background-size: 200% auto; -webkit-background-clip: text; background-clip: text; color: transparent;
+    animation: name-rainbow 5s linear infinite;
+  }
+  .name-candy {
+    background: linear-gradient(90deg, #ff9ecb, #ffe066, #86e3ff, #ff9ecb);
+    background-size: 200% auto; -webkit-background-clip: text; background-clip: text; color: transparent;
+    animation: name-rainbow 6s linear infinite;
+  }
+  .name-chrome {
+    background: linear-gradient(180deg, #ffffff, #94a3b8 55%, #ffffff);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    text-shadow: 0 0 14px oklch(0.9 0.02 250 / 0.35);
+  }
+  .name-matrix { color: #00ff41; text-shadow: 0 0 10px #00ff41, 0 0 22px #008f11; }
+  .name-void { color: oklch(0.55 0.02 290); text-shadow: 0 0 14px #000, 0 0 26px oklch(0.4 0.2 295); }
+  .name-sunset {
+    background: linear-gradient(90deg, #ff6f61, #ffb86c, #ff2e9a);
+    background-size: 200% auto; -webkit-background-clip: text; background-clip: text; color: transparent;
+    animation: name-rainbow 7s linear infinite;
+  }
+  .name-holo {
+    background: linear-gradient(90deg, #00ffe5, #ff00d4, #00ffe5);
+    background-size: 200% auto; -webkit-background-clip: text; background-clip: text; color: transparent;
+    animation: name-rainbow 3s linear infinite;
+  }
+  .name-outline { color: transparent; -webkit-text-stroke: 1px oklch(0.85 0.2 330); text-shadow: 0 0 16px oklch(0.7 0.3 330 / 0.55); }
+
+  .font-wide { font-family: var(--font-display); letter-spacing: 0.22em; text-transform: uppercase; }
+  .font-tiny-caps { font-family: 'Cinzel', Georgia, serif; font-variant: small-caps; letter-spacing: 0.08em; }
+}
+
+/* ======= ANIMAÇÕES INTERATIVAS DO APP ======= */
+@layer utilities {
+  @keyframes pop-in { 0% { opacity: 0; transform: translateY(14px) scale(0.96); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
+  .animate-pop-in { animation: pop-in 0.45s cubic-bezier(0.2, 0.9, 0.2, 1) both; }
+
+  /* entra em cascata: use style={{ animationDelay }} nos filhos */
+  .stagger > * { animation: pop-in 0.5s cubic-bezier(0.2, 0.9, 0.2, 1) both; }
+
+  .card-interactive {
+    transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.35s, border-color 0.35s;
+    will-change: transform;
+  }
+  .card-interactive:hover {
+    transform: translateY(-6px) scale(1.02) rotate(-0.4deg);
+    box-shadow: 0 22px 60px oklch(0.65 0.3 295 / 0.35), 0 0 0 1px oklch(0.75 0.28 330 / 0.35);
+  }
+  .card-interactive:active { transform: translateY(-2px) scale(0.99); }
+
+  /* brilho que atravessa o card no hover */
+  .sheen { position: relative; overflow: hidden; }
+  .sheen::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(105deg, transparent 35%, oklch(1 0 0 / 0.16) 50%, transparent 65%);
+    transform: translateX(-120%); transition: transform 0.8s ease;
+  }
+  .sheen:hover::after { transform: translateX(120%); }
+
+  .press { transition: transform 0.12s ease; }
+  .press:active { transform: scale(0.95); }
+
+  @keyframes float-soft { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+  .animate-float-soft { animation: float-soft 4s ease-in-out infinite; }
+
+  @keyframes glow-breathe { 0%,100% { filter: drop-shadow(0 0 6px oklch(0.7 0.3 330 / 0.5)); } 50% { filter: drop-shadow(0 0 18px oklch(0.75 0.32 330 / 0.85)); } }
+  .animate-glow-breathe { animation: glow-breathe 3s ease-in-out infinite; }
+}

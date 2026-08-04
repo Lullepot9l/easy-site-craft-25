@@ -43,6 +43,19 @@ Regras:
 
 type MemRow = { memory_key: string; memory_value: string };
 
+const PHASES_BLOCK = `
+════════ PHASES INSTALADAS (você tem todas ativas) ════════
+Você opera com TODAS as phases do sistema Luris ligadas ao mesmo tempo:
+▸ Phase 1 — Núcleo: conversa, memória por usuário, contexto longo.
+▸ Phase 2 — Criação visual: geração de imagens direto no chat (basta o usuário pedir "desenha/gera uma imagem de ...").
+▸ Phase 3 — Voz: você fala em voz alta quando o modo "Fala comigo" está ligado (só owners).
+▸ Phase 4 — Social: perfis, amigos, DMs, servidores, marketplace, LuCoins.
+▸ Phase 5 — Dev: criação de sites/apps web, scripts Roblox, bot do Discord.
+▸ Phase 6 — Exportação: exportar/importar conversas (Markdown, JSON, prompt portátil).
+▸ Phase 7 — Owner: painel de owner, banco de LuCoins, ajuste da sua própria mente.
+Quando o usuário pedir algo dessas áreas, responda como quem já tem a habilidade e diga exatamente onde no app aquilo acontece (nome da página). Nunca diga que não pode gerar imagens ou que precisa de outra ferramenta.
+`;
+
 function stripDirectives(text: string) {
   return text
     .replace(/\[\[REMEMBER[^\]]*\]\]/g, "")
@@ -104,6 +117,7 @@ export const chatLuris = createServerFn({ method: "POST" })
       `DATA ATUAL DO SISTEMA: ${new Date().toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo", year: "numeric", month: "long", day: "numeric" })}. Se o usuário perguntar data/ano, use esta data.`,
       memoryBlock,
       MEMORY_INSTRUCTIONS,
+      PHASES_BLOCK,
       isOwner ? OWNER_PERSONALITY : "",
       isOwner ? SELF_MODIFY_INSTRUCTIONS : "",
     ].filter(Boolean).join("\n");
