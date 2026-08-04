@@ -230,20 +230,23 @@ function Market() {
         )}
       </div>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filtered.map((it) => {
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 stagger">
+        {filtered.map((it, idx) => {
           const fx = extractFxTag(it.tags);
           const owned = inventory.has(it.id);
           const isCosmetic = ["avatar_effect", "chat_background", "name_style", "name_font", "profile_theme"].includes(it.item_type);
           const isEquipped = Boolean(fx && fx === equippedFx);
           return (
-            <div key={it.id} className="glass p-4 rounded-xl hover-lift relative group">
+            <div key={it.id} className="glass p-4 rounded-xl card-interactive sheen relative group"
+              style={{ animationDelay: `${Math.min(idx, 12) * 45}ms` }}>
               {!it.approved && <span className="absolute top-2 right-2 text-[10px] font-mono px-2 py-0.5 rounded bg-[oklch(0.4_0.2_60/0.4)] text-[oklch(0.85_0.18_80)]">pendente</span>}
               {it.is_featured && <span className="absolute top-2 left-2 text-[10px] font-mono px-2 py-0.5 rounded bg-[oklch(0.3_0.28_330/0.5)] neon-text-magenta">★ destaque</span>}
 
               {fx ? (
-                <div className="aspect-video rounded-lg mb-3 bg-gradient-to-br from-[oklch(0.18_0.15_295)] to-[oklch(0.15_0.2_330)] flex items-center justify-center">
-                  <AvatarBubble name="L" size={80} effect={fx} />
+                <div className="aspect-video rounded-lg mb-3 bg-gradient-to-br from-[oklch(0.18_0.15_295)] to-[oklch(0.15_0.2_330)] flex items-center justify-center overflow-hidden">
+                  <div className="animate-float-soft group-hover:scale-110 transition-transform duration-500">
+                    <AvatarBubble name="L" size={80} effect={fx} />
+                  </div>
                 </div>
               ) : it.item_type === "chat_background" ? (
                 <div className="aspect-video rounded-lg overflow-hidden mb-3 flex items-center justify-center text-sm font-display"
@@ -286,7 +289,7 @@ function Market() {
                       : <button onClick={() => equip(it)} className="btn-neon px-3 py-1 rounded-md text-xs font-display flex items-center gap-1"><Sparkles className="h-3 w-3" /> Equipar</button>
                   )}
                   {owned && !isCosmetic && <span className="glass px-2 py-1 rounded-md text-[10px] font-mono">✓ comprado</span>}
-                  {!owned && <button onClick={() => buy(it)} className="btn-neon px-3 py-1 rounded-md text-xs font-display">Comprar</button>}
+                  {!owned && <button onClick={() => buy(it)} className="btn-neon press px-3 py-1 rounded-md text-xs font-display">Comprar</button>}
                 </div>
               </div>
             </div>
