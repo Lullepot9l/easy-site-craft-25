@@ -9,6 +9,14 @@ export const NAME_COLORS = [
   { value: "blood", label: "Sangue", className: "name-blood" },
   { value: "ice", label: "Gelo", className: "name-ice" },
   { value: "toxic", label: "Tóxico", className: "name-toxic" },
+  { value: "aurora", label: "Aurora Animada", className: "name-aurora" },
+  { value: "candy", label: "Candy", className: "name-candy" },
+  { value: "chrome", label: "Cromado", className: "name-chrome" },
+  { value: "matrix", label: "Matrix", className: "name-matrix" },
+  { value: "void", label: "Vazio", className: "name-void" },
+  { value: "sunset", label: "Sunset", className: "name-sunset" },
+  { value: "holo", label: "Holográfico", className: "name-holo" },
+  { value: "outline", label: "Contorno Néon", className: "name-outline" },
   { value: "soft", label: "Branco Suave", className: "text-[oklch(0.96_0.02_295)]" },
 ] as const;
 
@@ -20,6 +28,8 @@ export const NAME_FONTS = [
   { value: "pacifico", label: "Pacifico (Fofo)", className: "font-pacifico" },
   { value: "vibes", label: "Great Vibes (Elegante)", className: "font-vibes" },
   { value: "press", label: "Pixel Retro", className: "font-press" },
+  { value: "wide", label: "Cyber Largo", className: "font-wide" },
+  { value: "tinycaps", label: "Small Caps", className: "font-tiny-caps" },
   { value: "mono", label: "Mono", className: "font-mono" },
   { value: "soft", label: "Soft", className: "font-body" },
 ] as const;
