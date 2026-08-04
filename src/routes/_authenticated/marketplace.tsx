@@ -44,6 +44,11 @@ const FX_LABEL: Record<string, string> = {
   "fx-nebula": "Aura Nebulosa", "fx-frost": "Aura Gélida", "fx-inferno": "Aura Inferno",
   "fx-matrix": "Aura Matrix", "fx-royal": "Aura Real", "fx-starlight": "Aura Estelar",
   "fx-vortex": "Aura Vórtice", "fx-candy": "Aura Candy",
+  "fx-dragon": "Aura Dragão", "fx-angel": "Aura Anjo", "fx-demon": "Aura Demônio",
+  "fx-ocean": "Aura Oceano", "fx-lavender": "Aura Lavanda", "fx-bubblegum": "Aura Chiclete",
+  "fx-thunder": "Aura Trovão", "fx-plasma": "Aura Plasma", "fx-cosmos": "Aura Cosmos",
+  "fx-emerald-flow": "Aura Esmeralda Fluida", "fx-sunset": "Aura Sunset",
+  "fx-chrome": "Aura Cromada", "fx-luris-heart": "Aura Coração da Luris",
 };
 
 function extractFxTag(tags: string[] | null): string | null {
