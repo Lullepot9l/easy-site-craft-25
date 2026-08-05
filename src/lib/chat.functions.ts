@@ -102,7 +102,7 @@ export const chatLuris = createServerFn({ method: "POST" })
       messages: z.array(z.object({
         role: z.enum(["user", "assistant", "system"]),
         content: z.string().min(1).max(32000),
-        images: z.array(z.string().url().or(z.string().startsWith("data:"))).max(10).optional(),
+        images: z.array(z.string().url().or(z.string().startsWith("data:"))).max(12).optional(),
       })).min(1).max(400),
     }).parse(input)
   )
