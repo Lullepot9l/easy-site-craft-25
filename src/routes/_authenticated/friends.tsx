@@ -259,7 +259,24 @@ function FriendsView({ userId }: { userId: string }) {
       <InviteFriends />
 
       {showTheme && (
-        <div className="glass-strong rounded-xl p-4 grid grid-cols-1 md:grid-cols-4 gap-3 animate-fade-in-up">
+        <div className="glass-strong rounded-xl p-4 space-y-4 animate-fade-in-up">
+          <div>
+            <p className="text-xs font-mono text-muted-foreground mb-2">Temas prontos (mais na loja 🛒)</p>
+            <div className="flex flex-wrap gap-2">
+              {DM_THEMES.map((t) => (
+                <button
+                  key={t.key}
+                  onClick={() => saveTheme({ bg_color: t.bg_color, bg_image_url: t.bg_image_url, bubble_color: t.bubble_color, accent_color: t.accent_color })}
+                  className="glass rounded-lg px-3 py-2 text-[11px] font-mono hover-lift flex items-center gap-2"
+                  style={{ borderColor: t.accent_color }}
+                >
+                  <span className="h-3 w-3 rounded-full" style={{ background: t.accent_color }} />
+                  {t.name}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
           <label className="text-xs font-mono flex flex-col gap-1">Fundo (cor)
             <input type="color" value={theme.bg_color} onChange={(e) => saveTheme({ ...theme, bg_color: e.target.value })} className="h-10 rounded bg-transparent" />
           </label>
@@ -275,6 +292,7 @@ function FriendsView({ userId }: { userId: string }) {
               <button onClick={() => saveTheme({ ...theme, bg_image_url: null })} className="glass px-2 rounded" title="limpar"><X className="h-3 w-3" /></button>
             </div>
           </label>
+          </div>
         </div>
       )}
 
