@@ -45,6 +45,32 @@ function extractImagePrompt(text: string): string | null {
   return rest.length >= 3 ? rest : text.trim();
 }
 
+// Reduz imagens grandes no navegador para não estourar o limite do modelo
+async function downscaleImage(file: File, max = 1600): Promise<string> {
+  const dataUrl = await new Promise<string>((resolve) => {
+    const r = new FileReader();
+    r.onload = (ev) => resolve(String(ev.target?.result ?? ""));
+    r.readAsDataURL(file);
+  });
+  if (!dataUrl || file.size < 900_000) return dataUrl;
+  try {
+    const img = new Image();
+    img.src = dataUrl;
+    await img.decode();
+    const scale = Math.min(1, max / Math.max(img.width, img.height));
+    if (scale >= 1) return dataUrl;
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(img.width * scale);
+    canvas.height = Math.round(img.height * scale);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return dataUrl;
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL("image/jpeg", 0.86);
+  } catch {
+    return dataUrl;
+  }
+}
+
 function ChatPage() {
   const { user, role, profile, isOwner } = useAuth();
   const send = useServerFn(chatLuris);
