@@ -68,6 +68,8 @@ function ChatPage() {
   const [plusOpen, setPlusOpen] = useState(false);
   const [attachedImages, setAttachedImages] = useState<string[]>([]);
   const [imgMode, setImgMode] = useState(false);
+  const [imgStyle, setImgStyle] = useState<string>("");
+  const [imgCount, setImgCount] = useState<1 | 2 | 3 | 4>(1);
   const [dragOver, setDragOver] = useState(false);
   const [sharing, setSharing] = useState(false);
   const screenStreamRef = useRef<MediaStream | null>(null);
@@ -190,13 +192,19 @@ ${messages.map(m => `<div class="msg ${m.role}"><div class="role">${m.role === "
     if (imgMode || autoPrompt) {
       const prompt = autoPrompt ?? input.trim();
       if (!prompt) { toast.error("Escreva o que a Luris deve desenhar"); return; }
-      const userMsg: Msg = { role: "user", content: autoPrompt ? input.trim() : `🎨 gerar imagem: ${prompt}` };
+      const userMsg: Msg = { role: "user", content: autoPrompt ? input.trim() : `🎨 gerar imagem: ${prompt}${imgStyle ? ` · ${imgStyle}` : ""}` };
       setMessages((m) => [...m, userMsg]);
       setInput(""); setImgMode(false); setLoading(true);
       try {
-        const res = await genImg({ data: { prompt } });
+        const res = await genImg({ data: { prompt, count: imgCount, style: imgStyle || undefined } });
         if (res.error) { toast.error(res.error); return; }
-        setMessages((m) => [...m, { role: "assistant", content: "Prontinho 🌑✨", imageUrl: res.image_url }]);
+        const urls = res.images ?? (res.image_url ? [res.image_url] : []);
+        setMessages((m) => [...m, {
+          role: "assistant",
+          content: urls.length > 1 ? `Prontinho 🌑✨ ${urls.length} versões pra você escolher` : "Prontinho 🌑✨",
+          imageUrl: urls[0],
+          images: urls.length > 1 ? urls : undefined,
+        }]);
         pingSound();
         if (voiceOn) speak("Prontinho, desenhei pra você.");
       } catch (err) {
@@ -260,13 +268,10 @@ ${messages.map(m => `<div class="msg ${m.role}"><div class="role">${m.role === "
     let added = 0;
     arr.forEach((f) => {
       if (!f.type.startsWith("image/")) { toast.error(`${f.name}: apenas imagens são aceitas por enquanto`); return; }
-      if (f.size > 6 * 1024 * 1024) { toast.error(`${f.name}: máx 6MB`); return; }
-      const r = new FileReader();
-      r.onload = (ev) => {
-        const url = String(ev.target?.result ?? "");
-        if (url) setAttachedImages((prev) => (prev.length >= 4 ? prev : [...prev, url]));
-      };
-      r.readAsDataURL(f);
+      if (f.size > 25 * 1024 * 1024) { toast.error(`${f.name}: máx 25MB`); return; }
+      void downscaleImage(f).then((url) => {
+        if (url) setAttachedImages((prev) => (prev.length >= 12 ? prev : [...prev, url]));
+      });
       added++;
     });
     if (added) setPlusOpen(false);
@@ -470,7 +475,7 @@ ${messages.map(m => `<div class="msg ${m.role}"><div class="role">${m.role === "
               </div>
             ))}
             <span className="text-xs font-mono text-muted-foreground flex-1">
-              {attachedImages.length}/4 imagem(ns) · vai junto na próxima mensagem
+              {attachedImages.length}/12 imagem(ns) · vai junto na próxima mensagem
             </span>
           </div>
         )}
@@ -497,6 +502,10 @@ ${messages.map(m => `<div class="msg ${m.role}"><div class="role">${m.role === "
                 </button>
                 <button type="button" onClick={() => { setImgMode(true); setPlusOpen(false); }}
                   className="w-full text-left px-3 py-2 rounded-lg hover:bg-[oklch(0.3_0.2_330/0.4)] flex items-center gap-2 text-xs font-mono">
+                  <Sparkles className="h-3 w-3" /> Abrir Estúdio de Imagens da Luris
+                </button>
+                <button type="button" onClick={() => { setImgMode(true); setPlusOpen(false); }}
+                  className="w-full text-left px-3 py-2 rounded-lg hover:bg-[oklch(0.3_0.2_330/0.4)] flex items-center gap-2 text-xs font-mono">
                   <ImgIcon className="h-3 w-3" /> Gerar imagem com IA
                 </button>
                 {isOwner && (!sharing ? (
@@ -519,9 +528,27 @@ ${messages.map(m => `<div class="msg ${m.role}"><div class="role">${m.role === "
               onChange={(e) => onPickChatFiles(e.target.files)} />
           </div>
           {imgMode && (
-            <div className="flex items-center gap-1 px-3 rounded-xl bg-[oklch(0.4_0.3_330/0.3)] text-xs font-mono">
-              🎨 modo imagem
-              <button type="button" onClick={() => setImgMode(false)} className="ml-1"><X className="h-3 w-3" /></button>
+            <div className="absolute bottom-full left-0 right-0 mb-2 glass-strong rounded-xl p-3 border border-[oklch(0.6_0.3_330/0.5)] animate-fade-in-up z-20">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-display neon-text-magenta">🎨 Estúdio de Imagens da Luris</span>
+                <button type="button" onClick={() => setImgMode(false)} className="glass p-1 rounded"><X className="h-3 w-3" /></button>
+              </div>
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {["anime", "realista", "cyberpunk", "fantasia", "cinematográfico", "mangá", "3D render", "pixel art", "aquarela", "chibi fofo"].map((s) => (
+                  <button key={s} type="button" onClick={() => setImgStyle(imgStyle === s ? "" : s)}
+                    className={`px-2 py-1 rounded text-[10px] font-mono ${imgStyle === s ? "btn-neon" : "glass"}`}>
+                    {s}
+                  </button>
+                ))}
+              </div>
+              <div className="flex items-center gap-2 text-[10px] font-mono text-muted-foreground">
+                quantas:
+                {([1, 2, 3, 4] as const).map((n) => (
+                  <button key={n} type="button" onClick={() => setImgCount(n)}
+                    className={`px-2 py-1 rounded ${imgCount === n ? "btn-neon" : "glass"}`}>{n}</button>
+                ))}
+                <span className="ml-auto">escreva a descrição abaixo e manda 🚀</span>
+              </div>
             </div>
           )}
           <input value={input} onChange={(e) => setInput(e.target.value)}
