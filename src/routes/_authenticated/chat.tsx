@@ -530,10 +530,6 @@ ${messages.map(m => `<div class="msg ${m.role}"><div class="role">${m.role === "
                   className="w-full text-left px-3 py-2 rounded-lg hover:bg-[oklch(0.3_0.2_330/0.4)] flex items-center gap-2 text-xs font-mono">
                   <Sparkles className="h-3 w-3" /> Abrir Estúdio de Imagens da Luris
                 </button>
-                <button type="button" onClick={() => { setImgMode(true); setPlusOpen(false); }}
-                  className="w-full text-left px-3 py-2 rounded-lg hover:bg-[oklch(0.3_0.2_330/0.4)] flex items-center gap-2 text-xs font-mono">
-                  <ImgIcon className="h-3 w-3" /> Gerar imagem com IA
-                </button>
                 {isOwner && (!sharing ? (
                   <button type="button" onClick={() => { setPlusOpen(false); startShareScreen(); }}
                     className="w-full text-left px-3 py-2 rounded-lg hover:bg-[oklch(0.3_0.2_295/0.4)] flex items-center gap-2 text-xs font-mono">
