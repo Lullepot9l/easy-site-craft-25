@@ -255,24 +255,66 @@ export const chatLuris = createServerFn({ method: "POST" })
 
 export const generateImage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) => z.object({ prompt: z.string().min(3).max(2000) }).parse(input))
+  .inputValidator((input) =>
+    z.object({
+      prompt: z.string().min(3).max(2000),
+      count: z.number().int().min(1).max(4).optional(),
+      style: z.string().max(80).optional(),
+    }).parse(input)
+  )
   .handler(async ({ data, context }) => {
     const key = process.env.LOVABLE_API_KEY;
     if (!key) throw new Error("LOVABLE_API_KEY ausente");
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash-image",
-        messages: [{ role: "user", content: data.prompt }],
-        modalities: ["image", "text"],
-      }),
-    });
-    if (!res.ok) return { error: `Erro ${res.status}`, image_url: "" };
-    const json = await res.json() as { choices?: Array<{ message?: { images?: Array<{ image_url?: { url?: string } }> } }> };
-    const url = json.choices?.[0]?.message?.images?.[0]?.image_url?.url ?? "";
-    if (url) {
-      await context.supabase.from("generated_images").insert({ user_id: context.userId, prompt: data.prompt, image_url: url });
+    const MODELS = [
+      "google/gemini-3.1-flash-image",
+      "google/gemini-2.5-flash-image",
+      "google/gemini-3-pro-image",
+    ];
+    const fullPrompt = data.style ? `${data.prompt}, estilo ${data.style}` : data.prompt;
+    const count = data.count ?? 1;
+
+    async function once(): Promise<{ url: string; error: string | null }> {
+      let lastErr = "";
+      for (const model of MODELS) {
+        try {
+          const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${key}`,
+              "Lovable-API-Key": key!,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              model,
+              messages: [{ role: "user", content: fullPrompt }],
+              modalities: ["image", "text"],
+            }),
+          });
+          if (!res.ok) {
+            lastErr = `Erro ${res.status}`;
+            continue;
+          }
+          const json = await res.json() as { choices?: Array<{ message?: { images?: Array<{ image_url?: { url?: string } }> } }> };
+          const url = json.choices?.[0]?.message?.images?.[0]?.image_url?.url ?? "";
+          if (url) return { url, error: null };
+          lastErr = "resposta sem imagem";
+        } catch (e) {
+          lastErr = e instanceof Error ? e.message : "falha de rede";
+        }
+      }
+      return { url: "", error: lastErr || "não deu pra gerar" };
     }
-    return { image_url: url, error: null as string | null };
+
+    const results = await Promise.all(Array.from({ length: count }, () => once()));
+    const urls = results.map((r) => r.url).filter(Boolean);
+    if (urls.length) {
+      await context.supabase.from("generated_images").insert(
+        urls.map((image_url) => ({ user_id: context.userId, prompt: fullPrompt, image_url })),
+      );
+    }
+    return {
+      image_url: urls[0] ?? "",
+      images: urls,
+      error: urls.length ? null : (results[0]?.error ?? "não deu pra gerar"),
+    };
   });
