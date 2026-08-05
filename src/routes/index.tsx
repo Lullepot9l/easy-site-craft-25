@@ -6,8 +6,6 @@ import {
 } from "lucide-react";
 import { CyberBackground } from "@/components/CyberBackground";
 import { LurisLogo } from "@/components/LurisLogo";
-import { InstallApp } from "@/components/InstallApp";
-import { MobileModeToggle } from "@/components/MobileModeToggle";
 import { useI18n } from "@/lib/i18n";
 
 
