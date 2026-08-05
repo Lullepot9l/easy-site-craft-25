@@ -14,6 +14,9 @@ import { LurisLogo } from "@/components/LurisLogo";
 import { CyberBackground } from "@/components/CyberBackground";
 import { GodMode } from "@/components/GodMode";
 import { AvatarBubble } from "@/components/AvatarBubble";
+import { LurisHelpBubble } from "@/components/LurisHelpBubble";
+import { InstallApp } from "@/components/InstallApp";
+import { MobileModeToggle } from "@/components/MobileModeToggle";
 
 type NavItem = { to: string; icon: ComponentType<{ className?: string }>; label: string };
 
@@ -136,6 +139,10 @@ export function AppShell({ children }: { children: ReactNode }) {
             className="w-full flex items-center gap-2 px-3 py-2 rounded-lg glass text-xs font-mono hover-lift">
             <Globe className="h-3 w-3" /> {lang === "pt" ? "PT 🇧🇷 → EN" : "EN 🇺🇸 → PT"}
           </button>
+          <div className="flex flex-wrap gap-2">
+            <InstallApp />
+            <MobileModeToggle />
+          </div>
           <button onClick={logout}
             className="w-full flex items-center gap-2 px-3 py-2 rounded-lg glass text-xs font-display text-[oklch(0.75_0.2_25)] hover:bg-[oklch(0.3_0.2_25/0.3)]">
             <LogOut className="h-3 w-3" /> {t("nav.logout")}
@@ -145,6 +152,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <main className="flex-1 p-4 pt-20 lg:p-8 relative z-10 overflow-x-hidden min-w-0">{children}</main>
       <GodMode />
+      <LurisHelpBubble />
     </div>
   );
 }
