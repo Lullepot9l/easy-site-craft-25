@@ -45,6 +45,32 @@ function extractImagePrompt(text: string): string | null {
   return rest.length >= 3 ? rest : text.trim();
 }
 
+// Reduz imagens grandes no navegador para não estourar o limite do modelo
+async function downscaleImage(file: File, max = 1600): Promise<string> {
+  const dataUrl = await new Promise<string>((resolve) => {
+    const r = new FileReader();
+    r.onload = (ev) => resolve(String(ev.target?.result ?? ""));
+    r.readAsDataURL(file);
+  });
+  if (!dataUrl || file.size < 900_000) return dataUrl;
+  try {
+    const img = new Image();
+    img.src = dataUrl;
+    await img.decode();
+    const scale = Math.min(1, max / Math.max(img.width, img.height));
+    if (scale >= 1) return dataUrl;
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(img.width * scale);
+    canvas.height = Math.round(img.height * scale);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return dataUrl;
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL("image/jpeg", 0.86);
+  } catch {
+    return dataUrl;
+  }
+}
+
 function ChatPage() {
   const { user, role, profile, isOwner } = useAuth();
   const send = useServerFn(chatLuris);
@@ -68,6 +94,8 @@ function ChatPage() {
   const [plusOpen, setPlusOpen] = useState(false);
   const [attachedImages, setAttachedImages] = useState<string[]>([]);
   const [imgMode, setImgMode] = useState(false);
+  const [imgStyle, setImgStyle] = useState<string>("");
+  const [imgCount, setImgCount] = useState<1 | 2 | 3 | 4>(1);
   const [dragOver, setDragOver] = useState(false);
   const [sharing, setSharing] = useState(false);
   const screenStreamRef = useRef<MediaStream | null>(null);
@@ -190,13 +218,19 @@ ${messages.map(m => `<div class="msg ${m.role}"><div class="role">${m.role === "
     if (imgMode || autoPrompt) {
       const prompt = autoPrompt ?? input.trim();
       if (!prompt) { toast.error("Escreva o que a Luris deve desenhar"); return; }
-      const userMsg: Msg = { role: "user", content: autoPrompt ? input.trim() : `🎨 gerar imagem: ${prompt}` };
+      const userMsg: Msg = { role: "user", content: autoPrompt ? input.trim() : `🎨 gerar imagem: ${prompt}${imgStyle ? ` · ${imgStyle}` : ""}` };
       setMessages((m) => [...m, userMsg]);
       setInput(""); setImgMode(false); setLoading(true);
       try {
-        const res = await genImg({ data: { prompt } });
+        const res = await genImg({ data: { prompt, count: imgCount, style: imgStyle || undefined } });
         if (res.error) { toast.error(res.error); return; }
-        setMessages((m) => [...m, { role: "assistant", content: "Prontinho 🌑✨", imageUrl: res.image_url }]);
+        const urls = res.images ?? (res.image_url ? [res.image_url] : []);
+        setMessages((m) => [...m, {
+          role: "assistant",
+          content: urls.length > 1 ? `Prontinho 🌑✨ ${urls.length} versões pra você escolher` : "Prontinho 🌑✨",
+          imageUrl: urls[0],
+          images: urls.length > 1 ? urls : undefined,
+        }]);
         pingSound();
         if (voiceOn) speak("Prontinho, desenhei pra você.");
       } catch (err) {
@@ -260,13 +294,10 @@ ${messages.map(m => `<div class="msg ${m.role}"><div class="role">${m.role === "
     let added = 0;
     arr.forEach((f) => {
       if (!f.type.startsWith("image/")) { toast.error(`${f.name}: apenas imagens são aceitas por enquanto`); return; }
-      if (f.size > 6 * 1024 * 1024) { toast.error(`${f.name}: máx 6MB`); return; }
-      const r = new FileReader();
-      r.onload = (ev) => {
-        const url = String(ev.target?.result ?? "");
-        if (url) setAttachedImages((prev) => (prev.length >= 4 ? prev : [...prev, url]));
-      };
-      r.readAsDataURL(f);
+      if (f.size > 25 * 1024 * 1024) { toast.error(`${f.name}: máx 25MB`); return; }
+      void downscaleImage(f).then((url) => {
+        if (url) setAttachedImages((prev) => (prev.length >= 12 ? prev : [...prev, url]));
+      });
       added++;
     });
     if (added) setPlusOpen(false);
@@ -470,7 +501,7 @@ ${messages.map(m => `<div class="msg ${m.role}"><div class="role">${m.role === "
               </div>
             ))}
             <span className="text-xs font-mono text-muted-foreground flex-1">
-              {attachedImages.length}/4 imagem(ns) · vai junto na próxima mensagem
+              {attachedImages.length}/12 imagem(ns) · vai junto na próxima mensagem
             </span>
           </div>
         )}
@@ -493,11 +524,11 @@ ${messages.map(m => `<div class="msg ${m.role}"><div class="role">${m.role === "
               <div className="absolute bottom-full mb-2 left-0 glass-strong rounded-xl p-2 min-w-[240px] z-20 border border-[oklch(0.5_0.25_295/0.5)] glow-purple animate-fade-in-up">
                 <button type="button" onClick={() => chatFileRef.current?.click()}
                   className="w-full text-left px-3 py-2 rounded-lg hover:bg-[oklch(0.3_0.2_295/0.4)] flex items-center gap-2 text-xs font-mono">
-                  <Upload className="h-3 w-3" /> Anexar imagem(ns) — até 4
+                  <Upload className="h-3 w-3" /> Anexar imagem(ns) — até 12
                 </button>
                 <button type="button" onClick={() => { setImgMode(true); setPlusOpen(false); }}
                   className="w-full text-left px-3 py-2 rounded-lg hover:bg-[oklch(0.3_0.2_330/0.4)] flex items-center gap-2 text-xs font-mono">
-                  <ImgIcon className="h-3 w-3" /> Gerar imagem com IA
+                  <Sparkles className="h-3 w-3" /> Abrir Estúdio de Imagens da Luris
                 </button>
                 {isOwner && (!sharing ? (
                   <button type="button" onClick={() => { setPlusOpen(false); startShareScreen(); }}
@@ -519,9 +550,27 @@ ${messages.map(m => `<div class="msg ${m.role}"><div class="role">${m.role === "
               onChange={(e) => onPickChatFiles(e.target.files)} />
           </div>
           {imgMode && (
-            <div className="flex items-center gap-1 px-3 rounded-xl bg-[oklch(0.4_0.3_330/0.3)] text-xs font-mono">
-              🎨 modo imagem
-              <button type="button" onClick={() => setImgMode(false)} className="ml-1"><X className="h-3 w-3" /></button>
+            <div className="absolute bottom-full left-0 right-0 mb-2 glass-strong rounded-xl p-3 border border-[oklch(0.6_0.3_330/0.5)] animate-fade-in-up z-20">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-display neon-text-magenta">🎨 Estúdio de Imagens da Luris</span>
+                <button type="button" onClick={() => setImgMode(false)} className="glass p-1 rounded"><X className="h-3 w-3" /></button>
+              </div>
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {["anime", "realista", "cyberpunk", "fantasia", "cinematográfico", "mangá", "3D render", "pixel art", "aquarela", "chibi fofo"].map((s) => (
+                  <button key={s} type="button" onClick={() => setImgStyle(imgStyle === s ? "" : s)}
+                    className={`px-2 py-1 rounded text-[10px] font-mono ${imgStyle === s ? "btn-neon" : "glass"}`}>
+                    {s}
+                  </button>
+                ))}
+              </div>
+              <div className="flex items-center gap-2 text-[10px] font-mono text-muted-foreground">
+                quantas:
+                {([1, 2, 3, 4] as const).map((n) => (
+                  <button key={n} type="button" onClick={() => setImgCount(n)}
+                    className={`px-2 py-1 rounded ${imgCount === n ? "btn-neon" : "glass"}`}>{n}</button>
+                ))}
+                <span className="ml-auto">escreva a descrição abaixo e manda 🚀</span>
+              </div>
             </div>
           )}
           <input value={input} onChange={(e) => setInput(e.target.value)}

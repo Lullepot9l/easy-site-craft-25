@@ -41,6 +41,24 @@ Regras:
 ▸ Nunca use SELF_UPDATE se o pedido não veio do owner (a checagem de permissão é feita no servidor de qualquer jeito).
 `;
 
+const OWNER_ACCOUNT_COMMANDS = `
+════════ GERÊNCIA DE CONTAS PELO CHAT (SOMENTE OWNER) ════════
+O owner pode mandar você alterar contas falando normal ("coloca 500 lucoins na minha conta", "deixa o LU-ABC123 premium", "me dá 5000 de xp", "verifica minha conta").
+Para executar, emita no FINAL da resposta uma ou mais tags (o servidor executa de verdade):
+[[ACCOUNT op=add_coins amount=500 target=me]]
+[[ACCOUNT op=set_coins amount=10000 target=LU-ABC123]]
+[[ACCOUNT op=add_xp amount=5000 target=me]]
+[[ACCOUNT op=set_level amount=50 target=me]]
+[[ACCOUNT op=verify target=me]]
+[[ACCOUNT op=unverify target=me]]
+[[ACCOUNT op=set_name value=Lulle 🌑 target=me]]
+[[ACCOUNT op=set_role value=premium target=LU-ABC123]]
+Regras:
+▸ target=me para a própria conta do owner; senão use o ID de amizade (LU-XXXXXX) ou o @username.
+▸ amount pode ser negativo para tirar (ex: add_coins amount=-100).
+▸ Confirme em 1 frase curta e emita a tag. Nunca invente que fez sem emitir a tag.
+`;
+
 type MemRow = { memory_key: string; memory_value: string };
 
 const PHASES_BLOCK = `
@@ -61,6 +79,7 @@ function stripDirectives(text: string) {
     .replace(/\[\[REMEMBER[^\]]*\]\]/g, "")
     .replace(/\[\[FORGET[^\]]*\]\]/g, "")
     .replace(/\[\[SELF_UPDATE[^\]]*\]\]/g, "")
+    .replace(/\[\[ACCOUNT[^\]]*\]\]/g, "")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
 }
@@ -83,7 +102,7 @@ export const chatLuris = createServerFn({ method: "POST" })
       messages: z.array(z.object({
         role: z.enum(["user", "assistant", "system"]),
         content: z.string().min(1).max(32000),
-        images: z.array(z.string().url().or(z.string().startsWith("data:"))).max(10).optional(),
+        images: z.array(z.string().url().or(z.string().startsWith("data:"))).max(12).optional(),
       })).min(1).max(400),
     }).parse(input)
   )
@@ -120,6 +139,7 @@ export const chatLuris = createServerFn({ method: "POST" })
       PHASES_BLOCK,
       isOwner ? OWNER_PERSONALITY : "",
       isOwner ? SELF_MODIFY_INSTRUCTIONS : "",
+      isOwner ? OWNER_ACCOUNT_COMMANDS : "",
     ].filter(Boolean).join("\n");
 
 
@@ -181,6 +201,53 @@ export const chatLuris = createServerFn({ method: "POST" })
           await context.supabase.from("luris_settings").update({ personality: value.slice(0, 500), updated_at: new Date().toISOString() }).eq("id", 1);
         }
       }
+
+      // --- Parse ACCOUNT (owner only, executado com service role após checagem) ---
+      const accountTags = [...raw.matchAll(/\[\[ACCOUNT\s+([^\]]+)\]\]/g)];
+      if (accountTags.length) {
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        for (const tag of accountTags) {
+          const a = parseAttrs(tag[1]);
+          const op = a.op;
+          const target = (a.target ?? "me").trim();
+          let targetId = context.userId;
+          if (target && target.toLowerCase() !== "me") {
+            const clean = target.replace(/^@/, "");
+            const { data: found } = await supabaseAdmin
+              .from("profiles")
+              .select("id")
+              .or(`account_id.eq.${clean.toUpperCase()},username.eq.${clean.toLowerCase()}`)
+              .maybeSingle();
+            if (!found) continue;
+            targetId = found.id;
+          }
+          const amount = Number.parseInt(a.amount ?? "0", 10) || 0;
+          const { data: prof } = await supabaseAdmin
+            .from("profiles").select("coins, xp, level").eq("id", targetId).maybeSingle();
+          if (!prof) continue;
+
+          if (op === "add_coins") {
+            await supabaseAdmin.from("profiles").update({ coins: Math.max(0, (prof.coins ?? 0) + amount) }).eq("id", targetId);
+          } else if (op === "set_coins") {
+            await supabaseAdmin.from("profiles").update({ coins: Math.max(0, amount) }).eq("id", targetId);
+          } else if (op === "add_xp") {
+            const xp = Math.max(0, (prof.xp ?? 0) + amount);
+            await supabaseAdmin.from("profiles").update({ xp, level: Math.max(1, Math.floor(xp / 1000) + 1) }).eq("id", targetId);
+          } else if (op === "set_level") {
+            await supabaseAdmin.from("profiles").update({ level: Math.max(1, amount) }).eq("id", targetId);
+          } else if (op === "verify" || op === "unverify") {
+            await supabaseAdmin.from("profiles").update({ is_verified: op === "verify" }).eq("id", targetId);
+          } else if (op === "set_name" && a.value) {
+            await supabaseAdmin.from("profiles").update({ display_name: a.value.slice(0, 60) }).eq("id", targetId);
+          } else if (op === "set_role" && a.value) {
+            const role = a.value.trim().toLowerCase();
+            if (["user", "premium", "admin", "owner"].includes(role)) {
+              await supabaseAdmin.from("user_roles").delete().eq("user_id", targetId);
+              await supabaseAdmin.from("user_roles").insert({ user_id: targetId, role: role as "user" | "premium" | "admin" | "owner" });
+            }
+          }
+        }
+      }
     }
 
     return { content: stripDirectives(raw), error: null as string | null };
@@ -188,24 +255,66 @@ export const chatLuris = createServerFn({ method: "POST" })
 
 export const generateImage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) => z.object({ prompt: z.string().min(3).max(2000) }).parse(input))
+  .inputValidator((input) =>
+    z.object({
+      prompt: z.string().min(3).max(2000),
+      count: z.number().int().min(1).max(4).optional(),
+      style: z.string().max(80).optional(),
+    }).parse(input)
+  )
   .handler(async ({ data, context }) => {
     const key = process.env.LOVABLE_API_KEY;
     if (!key) throw new Error("LOVABLE_API_KEY ausente");
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash-image",
-        messages: [{ role: "user", content: data.prompt }],
-        modalities: ["image", "text"],
-      }),
-    });
-    if (!res.ok) return { error: `Erro ${res.status}`, image_url: "" };
-    const json = await res.json() as { choices?: Array<{ message?: { images?: Array<{ image_url?: { url?: string } }> } }> };
-    const url = json.choices?.[0]?.message?.images?.[0]?.image_url?.url ?? "";
-    if (url) {
-      await context.supabase.from("generated_images").insert({ user_id: context.userId, prompt: data.prompt, image_url: url });
+    const MODELS = [
+      "google/gemini-3.1-flash-image",
+      "google/gemini-2.5-flash-image",
+      "google/gemini-3-pro-image",
+    ];
+    const fullPrompt = data.style ? `${data.prompt}, estilo ${data.style}` : data.prompt;
+    const count = data.count ?? 1;
+
+    async function once(): Promise<{ url: string; error: string | null }> {
+      let lastErr = "";
+      for (const model of MODELS) {
+        try {
+          const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${key}`,
+              "Lovable-API-Key": key!,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              model,
+              messages: [{ role: "user", content: fullPrompt }],
+              modalities: ["image", "text"],
+            }),
+          });
+          if (!res.ok) {
+            lastErr = `Erro ${res.status}`;
+            continue;
+          }
+          const json = await res.json() as { choices?: Array<{ message?: { images?: Array<{ image_url?: { url?: string } }> } }> };
+          const url = json.choices?.[0]?.message?.images?.[0]?.image_url?.url ?? "";
+          if (url) return { url, error: null };
+          lastErr = "resposta sem imagem";
+        } catch (e) {
+          lastErr = e instanceof Error ? e.message : "falha de rede";
+        }
+      }
+      return { url: "", error: lastErr || "não deu pra gerar" };
     }
-    return { image_url: url, error: null as string | null };
+
+    const results = await Promise.all(Array.from({ length: count }, () => once()));
+    const urls = results.map((r) => r.url).filter(Boolean);
+    if (urls.length) {
+      await context.supabase.from("generated_images").insert(
+        urls.map((image_url) => ({ user_id: context.userId, prompt: fullPrompt, image_url })),
+      );
+    }
+    return {
+      image_url: urls[0] ?? "",
+      images: urls,
+      error: urls.length ? null : (results[0]?.error ?? "não deu pra gerar"),
+    };
   });

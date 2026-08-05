@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useI18n } from "@/lib/i18n";
 import { AvatarBubble } from "@/components/AvatarBubble";
 import { NAME_COLORS, NAME_FONTS, optionClass } from "@/lib/profile-style";
+import { DM_THEME_MAP } from "@/lib/dm-themes";
 
 export const Route = createFileRoute("/_authenticated/marketplace")({ component: Market });
 
@@ -27,7 +28,7 @@ interface Item {
   created_at: string;
 }
 
-const TYPES = ["avatar_effect", "chat_background", "name_style", "name_font", "profile_theme", "script", "imagem", "template", "asset", "plugin", "outro"];
+const TYPES = ["avatar_effect", "chat_background", "dm_theme", "name_style", "name_font", "profile_theme", "script", "imagem", "template", "asset", "plugin", "outro"];
 const CATEGORIES = ["Avatar Effects", "Fundos de Chat", "Perfil", "Scripts", "Templates", "Assets", "Plugins", "VIP", "LuCoins", "Outros"];
 
 const FX_LABEL: Record<string, string> = {
@@ -168,6 +169,20 @@ function Market() {
       const value = it.content ?? it.image_url ?? "oklch(0.18 0.12 295)";
       localStorage.setItem("luris.chat.bg", JSON.stringify({ mode: value.startsWith("http") || value.startsWith("data:") ? "image" : "color", value, scope: "all" }));
       toast.success(`Fundo ${it.title} aplicado nas conversas!`);
+      return;
+    } else if (it.item_type === "dm_theme") {
+      const theme = DM_THEME_MAP[it.content ?? ""];
+      if (!theme) return toast.error("Tema de DM inválido.");
+      const { error: dmErr } = await supabase.from("owner_chat_themes").upsert({
+        user_id: user.id,
+        bg_color: theme.bg_color,
+        bg_image_url: theme.bg_image_url,
+        bubble_color: theme.bubble_color,
+        accent_color: theme.accent_color,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: "user_id" });
+      if (dmErr) return toast.error(dmErr.message);
+      toast.success(`Tema ${theme.name} aplicado nas suas DMs!`);
       return;
     }
     if (!patch) return toast.error("Esse item ainda não é equipável.");

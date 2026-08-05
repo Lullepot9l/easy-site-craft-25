@@ -6,8 +6,6 @@ import {
 } from "lucide-react";
 import { CyberBackground } from "@/components/CyberBackground";
 import { LurisLogo } from "@/components/LurisLogo";
-import { InstallApp } from "@/components/InstallApp";
-import { MobileModeToggle } from "@/components/MobileModeToggle";
 import { useI18n } from "@/lib/i18n";
 
 
@@ -68,10 +66,6 @@ function Landing() {
           <button onClick={() => setLang(lang === "pt" ? "en" : "pt")} className="px-3 py-1 rounded-md glass text-sm font-mono">
             {lang === "pt" ? "PT 🇧🇷" : "EN 🇺🇸"}
           </button>
-          <span className="hidden md:contents">
-            <InstallApp />
-            <MobileModeToggle />
-          </span>
           <Link to="/login" className="px-5 py-2 btn-neon rounded-lg font-display text-sm">
             {t("auth.login")}
           </Link>
@@ -97,8 +91,6 @@ function Landing() {
               <Link to="/login" className="px-7 py-3 btn-neon rounded-xl font-display text-base inline-flex items-center gap-2">
                 <Rocket className="h-4 w-4" /> Entrar grátis
               </Link>
-              <InstallApp />
-              <MobileModeToggle />
               <a href="#categorias" className="px-7 py-3 rounded-xl glass hover-lift font-display text-base">
                 Ver recursos
               </a>

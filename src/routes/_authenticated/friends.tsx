@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { LoadingShield } from "@/components/AccessDenied";
 import { AvatarBubble } from "@/components/AvatarBubble";
+import { DM_THEMES } from "@/lib/dm-themes";
 
 export const Route = createFileRoute("/_authenticated/friends")({ component: Page });
 
@@ -94,11 +95,18 @@ function FriendsView({ userId }: { userId: string }) {
         const isThisChat =
           (row.sender_id === userId && row.recipient_id === active.id) ||
           (row.sender_id === active.id && row.recipient_id === userId);
-        if (isThisChat) setDms((prev) => [...prev, row]);
+        if (isThisChat) setDms((prev) => (prev.some((m) => m.id === row.id) ? prev : [...prev, row]));
       })
       .subscribe();
     return () => { void supabase.removeChannel(ch); };
   }, [active, userId]);
+
+  // Fallback: se o realtime cair, sincroniza a conversa a cada 4s
+  useEffect(() => {
+    if (!active) return;
+    const id = window.setInterval(() => { void loadDMs(active.id); }, 4000);
+    return () => window.clearInterval(id);
+  }, [active]);
 
   async function loadFriends() {
     const { data } = await supabase
@@ -150,7 +158,7 @@ function FriendsView({ userId }: { userId: string }) {
     const q = search.trim();
     const { data } = await supabase
       .from("profiles").select("id,username,display_name,avatar_url,bio,codename,current_game,favorite_games,discord_username,whatsapp_number,equipped_effect,name_color,name_font")
-      .or(`username.ilike.%${q}%,display_name.ilike.%${q}%`)
+      .or(`username.ilike.%${q}%,display_name.ilike.%${q}%,account_id.ilike.%${q.toUpperCase()}%,codename.ilike.%${q}%`)
       .neq("id", userId).limit(40);
     setResults((data ?? []) as MiniProfile[]);
   }
@@ -203,15 +211,24 @@ function FriendsView({ userId }: { userId: string }) {
     setText("");
     const currentAttachment = attachment;
     setAttachment(null);
-    const { error } = await supabase.from("direct_messages").insert({
+    const { data: inserted, error } = await supabase.from("direct_messages").insert({
       sender_id: userId,
       recipient_id: active.id,
       content: body || "📎 imagem",
       attachment_url: currentAttachment?.url ?? null,
       attachment_type: currentAttachment?.type ?? null,
       channel,
-    });
-    if (error) toast.error(error.message);
+    }).select("*").maybeSingle();
+    if (error) {
+      toast.error(error.message);
+      setText(body);
+      setAttachment(currentAttachment);
+      return;
+    }
+    if (inserted) {
+      const row = inserted as DM;
+      setDms((prev) => (prev.some((m) => m.id === row.id) ? prev : [...prev, row]));
+    }
   }
 
   function openWhatsApp() {
@@ -242,7 +259,24 @@ function FriendsView({ userId }: { userId: string }) {
       <InviteFriends />
 
       {showTheme && (
-        <div className="glass-strong rounded-xl p-4 grid grid-cols-1 md:grid-cols-4 gap-3 animate-fade-in-up">
+        <div className="glass-strong rounded-xl p-4 space-y-4 animate-fade-in-up">
+          <div>
+            <p className="text-xs font-mono text-muted-foreground mb-2">Temas prontos (mais na loja 🛒)</p>
+            <div className="flex flex-wrap gap-2">
+              {DM_THEMES.map((t) => (
+                <button
+                  key={t.key}
+                  onClick={() => saveTheme({ bg_color: t.bg_color, bg_image_url: t.bg_image_url, bubble_color: t.bubble_color, accent_color: t.accent_color })}
+                  className="glass rounded-lg px-3 py-2 text-[11px] font-mono hover-lift flex items-center gap-2"
+                  style={{ borderColor: t.accent_color }}
+                >
+                  <span className="h-3 w-3 rounded-full" style={{ background: t.accent_color }} />
+                  {t.name}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
           <label className="text-xs font-mono flex flex-col gap-1">Fundo (cor)
             <input type="color" value={theme.bg_color} onChange={(e) => saveTheme({ ...theme, bg_color: e.target.value })} className="h-10 rounded bg-transparent" />
           </label>
@@ -258,6 +292,7 @@ function FriendsView({ userId }: { userId: string }) {
               <button onClick={() => saveTheme({ ...theme, bg_image_url: null })} className="glass px-2 rounded" title="limpar"><X className="h-3 w-3" /></button>
             </div>
           </label>
+          </div>
         </div>
       )}
 
