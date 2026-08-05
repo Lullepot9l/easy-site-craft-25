@@ -5,7 +5,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { CyberBackground } from "@/components/CyberBackground";
 import { LurisLogo } from "@/components/LurisLogo";
-import { InstallApp } from "@/components/InstallApp";
 
 
 export const Route = createFileRoute("/login")({ component: LoginPage });
@@ -93,10 +92,6 @@ function LoginPage() {
         <button onClick={google} className="w-full py-3 rounded-lg glass hover-lift font-display text-sm">
           🌐 Continuar com Google
         </button>
-
-        <div className="mt-4 flex justify-center">
-          <InstallApp />
-        </div>
 
         <p className="mt-6 text-[11px] text-muted-foreground text-center font-mono">
           🌑 LURIS · acesso restrito
