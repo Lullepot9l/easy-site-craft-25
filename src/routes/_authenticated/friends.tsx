@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { LoadingShield } from "@/components/AccessDenied";
 import { AvatarBubble } from "@/components/AvatarBubble";
+import { DM_THEMES } from "@/lib/dm-themes";
 
 export const Route = createFileRoute("/_authenticated/friends")({ component: Page });
 
@@ -94,11 +95,18 @@ function FriendsView({ userId }: { userId: string }) {
         const isThisChat =
           (row.sender_id === userId && row.recipient_id === active.id) ||
           (row.sender_id === active.id && row.recipient_id === userId);
-        if (isThisChat) setDms((prev) => [...prev, row]);
+        if (isThisChat) setDms((prev) => (prev.some((m) => m.id === row.id) ? prev : [...prev, row]));
       })
       .subscribe();
     return () => { void supabase.removeChannel(ch); };
   }, [active, userId]);
+
+  // Fallback: se o realtime cair, sincroniza a conversa a cada 4s
+  useEffect(() => {
+    if (!active) return;
+    const id = window.setInterval(() => { void loadDMs(active.id); }, 4000);
+    return () => window.clearInterval(id);
+  }, [active]);
 
   async function loadFriends() {
     const { data } = await supabase
@@ -150,7 +158,7 @@ function FriendsView({ userId }: { userId: string }) {
     const q = search.trim();
     const { data } = await supabase
       .from("profiles").select("id,username,display_name,avatar_url,bio,codename,current_game,favorite_games,discord_username,whatsapp_number,equipped_effect,name_color,name_font")
-      .or(`username.ilike.%${q}%,display_name.ilike.%${q}%`)
+      .or(`username.ilike.%${q}%,display_name.ilike.%${q}%,account_id.ilike.%${q.toUpperCase()}%,codename.ilike.%${q}%`)
       .neq("id", userId).limit(40);
     setResults((data ?? []) as MiniProfile[]);
   }
@@ -203,15 +211,24 @@ function FriendsView({ userId }: { userId: string }) {
     setText("");
     const currentAttachment = attachment;
     setAttachment(null);
-    const { error } = await supabase.from("direct_messages").insert({
+    const { data: inserted, error } = await supabase.from("direct_messages").insert({
       sender_id: userId,
       recipient_id: active.id,
       content: body || "📎 imagem",
       attachment_url: currentAttachment?.url ?? null,
       attachment_type: currentAttachment?.type ?? null,
       channel,
-    });
-    if (error) toast.error(error.message);
+    }).select("*").maybeSingle();
+    if (error) {
+      toast.error(error.message);
+      setText(body);
+      setAttachment(currentAttachment);
+      return;
+    }
+    if (inserted) {
+      const row = inserted as DM;
+      setDms((prev) => (prev.some((m) => m.id === row.id) ? prev : [...prev, row]));
+    }
   }
 
   function openWhatsApp() {
