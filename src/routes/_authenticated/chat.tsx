@@ -524,7 +524,7 @@ ${messages.map(m => `<div class="msg ${m.role}"><div class="role">${m.role === "
               <div className="absolute bottom-full mb-2 left-0 glass-strong rounded-xl p-2 min-w-[240px] z-20 border border-[oklch(0.5_0.25_295/0.5)] glow-purple animate-fade-in-up">
                 <button type="button" onClick={() => chatFileRef.current?.click()}
                   className="w-full text-left px-3 py-2 rounded-lg hover:bg-[oklch(0.3_0.2_295/0.4)] flex items-center gap-2 text-xs font-mono">
-                  <Upload className="h-3 w-3" /> Anexar imagem(ns) — até 4
+                  <Upload className="h-3 w-3" /> Anexar imagem(ns) — até 12
                 </button>
                 <button type="button" onClick={() => { setImgMode(true); setPlusOpen(false); }}
                   className="w-full text-left px-3 py-2 rounded-lg hover:bg-[oklch(0.3_0.2_330/0.4)] flex items-center gap-2 text-xs font-mono">
