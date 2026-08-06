@@ -3,6 +3,7 @@ import {
   LayoutDashboard, MessageSquare, Image as ImgIcon, Users, ShoppingBag,
   Code2, Gamepad2, Crown, FileDown, LogOut, Sparkles, Globe, Terminal, Zap,
   Flame, Infinity as InfinityIcon, ChevronDown, Heart, Settings2, IdCard, Compass,
+  HardDriveDownload,
 } from "lucide-react";
 import { useEffect, useState, type ReactNode, type ComponentType } from "react";
 import { Menu, X } from "lucide-react";
@@ -15,7 +16,6 @@ import { CyberBackground } from "@/components/CyberBackground";
 import { GodMode } from "@/components/GodMode";
 import { AvatarBubble } from "@/components/AvatarBubble";
 import { LurisHelpBubble } from "@/components/LurisHelpBubble";
-import { InstallApp } from "@/components/InstallApp";
 import { MobileModeToggle } from "@/components/MobileModeToggle";
 
 type NavItem = { to: string; icon: ComponentType<{ className?: string }>; label: string };
@@ -40,6 +40,10 @@ const COMMUNITY_NAV: NavItem[] = [
 const ACCOUNT_NAV: NavItem[] = [
   { to: "/profile", icon: IdCard, label: "Meu perfil" },
   { to: "/settings", icon: Settings2, label: "Configurações" },
+];
+
+const APP_NAV: NavItem[] = [
+  { to: "/downloads", icon: HardDriveDownload, label: "Downloads Luris" },
 ];
 
 const DEV_NAV_KEYS = [
@@ -114,6 +118,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <NavGroup label="Principal" path={path} items={MAIN_NAV_KEYS.map(i => ({ to: i.to, icon: i.icon, label: t(i.key) }))} />
           <NavGroup label="Comunidade" path={path} items={[...HUB_NAV_KEYS.map(i => ({ to: i.to, icon: i.icon, label: t(i.key) })), ...COMMUNITY_NAV]} />
           <NavGroup label="Conta" path={path} items={ACCOUNT_NAV} />
+          <NavGroup label="luris.app" path={path} items={APP_NAV} />
           {isOwner && (
             <NavGroup label="Dev" path={path} items={DEV_NAV_KEYS.map(i => ({ to: i.to, icon: i.icon, label: t(i.key) }))} />
           )}
@@ -139,10 +144,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             className="w-full flex items-center gap-2 px-3 py-2 rounded-lg glass text-xs font-mono hover-lift">
             <Globe className="h-3 w-3" /> {lang === "pt" ? "PT 🇧🇷 → EN" : "EN 🇺🇸 → PT"}
           </button>
-          <div className="flex flex-wrap gap-2">
-            <InstallApp />
-            <MobileModeToggle />
-          </div>
+          <MobileModeToggle />
           <button onClick={logout}
             className="w-full flex items-center gap-2 px-3 py-2 rounded-lg glass text-xs font-display text-[oklch(0.75_0.2_25)] hover:bg-[oklch(0.3_0.2_25/0.3)]">
             <LogOut className="h-3 w-3" /> {t("nav.logout")}

@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { HelpCircle, X, GripVertical } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { useDraggableBubble } from "@/hooks/use-draggable-bubble";
 
 const POS_KEY = "luris.help.pos";
 
@@ -32,38 +33,7 @@ const OWNER_CMDS: Cmd[] = [
 export function LurisHelpBubble() {
   const { isOwner } = useAuth();
   const [open, setOpen] = useState(false);
-  const [pos, setPos] = useState<{ x: number; y: number }>({ x: 24, y: 120 });
-  const drag = useRef<{ dx: number; dy: number; moved: boolean } | null>(null);
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(POS_KEY);
-      if (raw) {
-        const p = JSON.parse(raw) as { x: number; y: number };
-        if (typeof p?.x === "number" && typeof p?.y === "number") setPos(p);
-      }
-    } catch { /* noop */ }
-  }, []);
-
-  useEffect(() => {
-    function move(e: PointerEvent) {
-      if (!drag.current) return;
-      drag.current.moved = true;
-      const x = Math.min(Math.max(8, window.innerWidth - e.clientX + drag.current.dx), window.innerWidth - 70);
-      const y = Math.min(Math.max(8, window.innerHeight - e.clientY + drag.current.dy), window.innerHeight - 70);
-      setPos({ x, y });
-    }
-    function up() {
-      if (!drag.current) return;
-      const moved = drag.current.moved;
-      drag.current = null;
-      setPos((p) => { try { localStorage.setItem(POS_KEY, JSON.stringify(p)); } catch { /* noop */ } return p; });
-      if (!moved) setOpen((v) => !v);
-    }
-    window.addEventListener("pointermove", move);
-    window.addEventListener("pointerup", up);
-    return () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); };
-  }, []);
+  const { pos, onPointerDown } = useDraggableBubble(POS_KEY, { x: 24, y: 96 }, () => setOpen((v) => !v));
 
   const cmds = isOwner ? [...CHAT_CMDS, ...OWNER_CMDS] : CHAT_CMDS;
 
@@ -93,13 +63,7 @@ export function LurisHelpBubble() {
       )}
       <button
         aria-label="Ajuda da Luris"
-        onPointerDown={(e) => {
-          drag.current = {
-            dx: e.clientX - (window.innerWidth - pos.x),
-            dy: e.clientY - (window.innerHeight - pos.y),
-            moved: false,
-          };
-        }}
+        onPointerDown={onPointerDown}
         className="h-13 w-13 p-3.5 rounded-full btn-neon glow-purple flex items-center justify-center cursor-grab active:cursor-grabbing touch-none select-none hover-lift"
       >
         {open ? <GripVertical className="h-5 w-5" /> : <HelpCircle className="h-5 w-5" />}
