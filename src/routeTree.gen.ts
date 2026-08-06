@@ -35,6 +35,7 @@ import { Route as AuthenticatedImagesRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedHubRouteImport } from './routes/_authenticated/hub'
 import { Route as AuthenticatedFriendsRouteImport } from './routes/_authenticated/friends'
 import { Route as AuthenticatedExportRouteImport } from './routes/_authenticated/export'
+import { Route as AuthenticatedDownloadsRouteImport } from './routes/_authenticated/downloads'
 import { Route as AuthenticatedDiscordRouteImport } from './routes/_authenticated/discord'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated/chat'
@@ -174,6 +175,11 @@ const AuthenticatedExportRoute = AuthenticatedExportRouteImport.update({
   path: '/export',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedDownloadsRoute = AuthenticatedDownloadsRouteImport.update({
+  id: '/downloads',
+  path: '/downloads',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedDiscordRoute = AuthenticatedDiscordRouteImport.update({
   id: '/discord',
   path: '/discord',
@@ -219,6 +225,7 @@ export interface FileRoutesByFullPath {
   '/chat': typeof AuthenticatedChatRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/discord': typeof AuthenticatedDiscordRoute
+  '/downloads': typeof AuthenticatedDownloadsRoute
   '/export': typeof AuthenticatedExportRoute
   '/friends': typeof AuthenticatedFriendsRoute
   '/hub': typeof AuthenticatedHubRoute
@@ -253,6 +260,7 @@ export interface FileRoutesByTo {
   '/chat': typeof AuthenticatedChatRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/discord': typeof AuthenticatedDiscordRoute
+  '/downloads': typeof AuthenticatedDownloadsRoute
   '/export': typeof AuthenticatedExportRoute
   '/friends': typeof AuthenticatedFriendsRoute
   '/hub': typeof AuthenticatedHubRoute
@@ -289,6 +297,7 @@ export interface FileRoutesById {
   '/_authenticated/chat': typeof AuthenticatedChatRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/discord': typeof AuthenticatedDiscordRoute
+  '/_authenticated/downloads': typeof AuthenticatedDownloadsRoute
   '/_authenticated/export': typeof AuthenticatedExportRoute
   '/_authenticated/friends': typeof AuthenticatedFriendsRoute
   '/_authenticated/hub': typeof AuthenticatedHubRoute
@@ -325,6 +334,7 @@ export interface FileRouteTypes {
     | '/chat'
     | '/dashboard'
     | '/discord'
+    | '/downloads'
     | '/export'
     | '/friends'
     | '/hub'
@@ -359,6 +369,7 @@ export interface FileRouteTypes {
     | '/chat'
     | '/dashboard'
     | '/discord'
+    | '/downloads'
     | '/export'
     | '/friends'
     | '/hub'
@@ -394,6 +405,7 @@ export interface FileRouteTypes {
     | '/_authenticated/chat'
     | '/_authenticated/dashboard'
     | '/_authenticated/discord'
+    | '/_authenticated/downloads'
     | '/_authenticated/export'
     | '/_authenticated/friends'
     | '/_authenticated/hub'
@@ -616,6 +628,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedExportRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/downloads': {
+      id: '/_authenticated/downloads'
+      path: '/downloads'
+      fullPath: '/downloads'
+      preLoaderRoute: typeof AuthenticatedDownloadsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/discord': {
       id: '/_authenticated/discord'
       path: '/discord'
@@ -672,6 +691,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedChatRoute: typeof AuthenticatedChatRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDiscordRoute: typeof AuthenticatedDiscordRoute
+  AuthenticatedDownloadsRoute: typeof AuthenticatedDownloadsRoute
   AuthenticatedExportRoute: typeof AuthenticatedExportRoute
   AuthenticatedFriendsRoute: typeof AuthenticatedFriendsRoute
   AuthenticatedHubRoute: typeof AuthenticatedHubRoute
@@ -699,6 +719,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedChatRoute: AuthenticatedChatRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDiscordRoute: AuthenticatedDiscordRoute,
+  AuthenticatedDownloadsRoute: AuthenticatedDownloadsRoute,
   AuthenticatedExportRoute: AuthenticatedExportRoute,
   AuthenticatedFriendsRoute: AuthenticatedFriendsRoute,
   AuthenticatedHubRoute: AuthenticatedHubRoute,
@@ -752,13 +773,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
