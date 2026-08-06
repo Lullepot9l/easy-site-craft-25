@@ -29,7 +29,25 @@ const TEMPLATES = [
   { id: "restaurant", label: "Restaurante", icon: "🍽️", prompt: "Site de restaurante com cardápio, fotos e reservas" },
   { id: "event", label: "Evento", icon: "🎉", prompt: "Página de evento com agenda, palestrantes e ingressos" },
   { id: "personal", label: "Pessoal", icon: "👤", prompt: "Site pessoal com bio, links sociais e contato" },
+  { id: "gaming", label: "Gaming / Clã", icon: "🎮", prompt: "Site de clã de games dark neon com roster, conquistas, streams e recrutamento" },
+  { id: "linktree", label: "Link Hub", icon: "🔗", prompt: "Página de links estilo linktree com avatar, botões animados e tema neon" },
+  { id: "musica", label: "Música / DJ", icon: "🎧", prompt: "Site de artista com player, próximos shows, galeria e links de streaming" },
+  { id: "docs", label: "Docs / Wiki", icon: "📚", prompt: "Site de documentação com sidebar de navegação, busca simples e blocos de código" },
+  { id: "dashboard", label: "Dashboard", icon: "📊", prompt: "Painel com cards de métricas, gráficos em canvas e tabela responsiva" },
+  { id: "convite", label: "Convite / Festa", icon: "💌", prompt: "Página de convite com contagem regressiva, local no mapa e confirmação de presença" },
   { id: "blank", label: "Em branco", icon: "📄", prompt: "Página simples em branco para começar do zero" },
+];
+
+// Reforços de prompt: clique pra somar detalhes ao pedido
+const BOOSTS = [
+  { label: "🌑 Dark neon", add: "Tema escuro com neon roxo/magenta, glassmorphism e brilhos suaves." },
+  { label: "☀️ Clean claro", add: "Tema claro e minimalista, muito espaço em branco e tipografia grande." },
+  { label: "📱 100% responsivo", add: "Totalmente responsivo, com menu hambúrguer no mobile." },
+  { label: "✨ Animações", add: "Animações de entrada ao rolar a página, hover suave e transições." },
+  { label: "🔍 SEO pronto", add: "Inclua title, meta description, headings semânticos e alt em imagens." },
+  { label: "🧩 Muitas seções", add: "Faça uma página longa com pelo menos 7 seções bem distintas." },
+  { label: "📝 Formulário", add: "Inclua formulário de contato com validação em JavaScript." },
+  { label: "⚡ Sem libs", add: "Use apenas HTML, CSS e JS puros, sem bibliotecas externas." },
 ];
 
 // Web Speech API typing helper
@@ -345,6 +363,17 @@ export function WebsiteBuilder({ ownerId }: { ownerId: string }) {
                 {t.label}
               </button>
             ))}
+          </div>
+          <div className="space-y-1">
+            <div className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Reforços de estilo (clique pra somar)</div>
+            <div className="flex flex-wrap gap-1.5">
+              {BOOSTS.map(b => (
+                <button key={b.label} onClick={() => setPrompt(p => (p ? `${p.trim()} ${b.add}` : b.add))}
+                  className="glass px-2.5 py-1 rounded-lg text-[11px] font-mono hover-lift">
+                  {b.label}
+                </button>
+              ))}
+            </div>
           </div>
           <div className="relative">
             <textarea value={prompt} onChange={(e) => setPrompt(e.target.value)}
