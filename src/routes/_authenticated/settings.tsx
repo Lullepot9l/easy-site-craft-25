@@ -9,6 +9,7 @@ import {
   ACTIVITY_STATUS, GAME_CATALOG, NAME_COLORS, NAME_FONTS, PROFILE_THEMES,
   detectCurrentGame, hasDesktopBridge, optionClass, statusMeta,
 } from "@/lib/profile-style";
+import { applyProfileTheme } from "@/lib/theme-apply";
 
 export const Route = createFileRoute("/_authenticated/settings")({ component: SettingsPage });
 
