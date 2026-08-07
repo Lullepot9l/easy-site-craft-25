@@ -6,7 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useI18n } from "@/lib/i18n";
 import { AvatarBubble } from "@/components/AvatarBubble";
-import { NAME_COLORS, NAME_FONTS, optionClass } from "@/lib/profile-style";
+import { NAME_COLORS, NAME_FONTS, PROFILE_THEMES, optionClass, normalizeStyleValue } from "@/lib/profile-style";
+import { applyProfileTheme } from "@/lib/theme-apply";
 import { DM_THEME_MAP } from "@/lib/dm-themes";
 
 export const Route = createFileRoute("/_authenticated/marketplace")({ component: Market });
@@ -160,11 +161,18 @@ function Market() {
       patch = { equipped_effect: fx };
       label = FX_LABEL[fx] ?? fx;
     } else if (it.item_type === "name_style") {
-      patch = { name_color: it.content ?? extractStyleTag(it.tags, "name-") ?? "gradient" };
+      const v = normalizeStyleValue(NAME_COLORS, it.content ?? extractStyleTag(it.tags, "name-"));
+      if (!v) return toast.error("Esse estilo de nome está com valor inválido — avisa o owner 🌑");
+      patch = { name_color: v };
     } else if (it.item_type === "name_font") {
-      patch = { name_font: it.content ?? extractStyleTag(it.tags, "font-") ?? "nightberry" };
+      const v = normalizeStyleValue(NAME_FONTS, it.content ?? extractStyleTag(it.tags, "font-"));
+      if (!v) return toast.error("Essa fonte está com valor inválido — avisa o owner 🌑");
+      patch = { name_font: v };
     } else if (it.item_type === "profile_theme") {
-      patch = { profile_theme: it.content ?? extractStyleTag(it.tags, "theme-") ?? "nightberry" };
+      const v = normalizeStyleValue(PROFILE_THEMES, it.content ?? extractStyleTag(it.tags, "theme-"));
+      if (!v) return toast.error("Esse tema está com valor inválido — avisa o owner 🌑");
+      patch = { profile_theme: v };
+      applyProfileTheme(v); // aplica as cores no site na hora
     } else if (it.item_type === "chat_background") {
       const value = it.content ?? it.image_url ?? "oklch(0.18 0.12 295)";
       localStorage.setItem("luris.chat.bg", JSON.stringify({ mode: value.startsWith("http") || value.startsWith("data:") ? "image" : "color", value, scope: "all" }));
