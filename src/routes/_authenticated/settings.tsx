@@ -301,7 +301,7 @@ function SettingsPage() {
             </select>
           </label>
           <label className="text-xs font-mono text-muted-foreground space-y-1">Tema do card
-            <select value={profileTheme} onChange={(e)=>setProfileTheme(e.target.value)} className="w-full glass px-3 py-2 rounded-lg text-sm text-foreground">
+            <select value={profileTheme} onChange={(e)=>{ setProfileTheme(e.target.value); applyProfileTheme(e.target.value); }} className="w-full glass px-3 py-2 rounded-lg text-sm text-foreground">
               {PROFILE_THEMES.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
             </select>
           </label>
