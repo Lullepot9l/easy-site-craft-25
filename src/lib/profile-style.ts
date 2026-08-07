@@ -43,7 +43,37 @@ export const PROFILE_THEMES = [
   { value: "gold", label: "Ouro" },
   { value: "blood", label: "Sangue" },
   { value: "mint", label: "Menta" },
+  { value: "matrix", label: "Matrix" },
+  { value: "ocean", label: "Oceano" },
+  { value: "royal", label: "Real" },
+  { value: "inferno", label: "Inferno" },
+  { value: "lavender", label: "Lavanda" },
+  { value: "void", label: "Vazio" },
+  { value: "aurora", label: "Aurora" },
+  { value: "candy", label: "Candy" },
 ] as const;
+
+/** Valores antigos/errados salvos no marketplace → valor válido equivalente. */
+const ALIASES: Record<string, string> = {
+  nightberry: "pacifico", // fonte "nightberry" nunca existiu em NAME_FONTS
+  berry: "pacifico",
+  cyber: "wide",
+};
+
+/**
+ * Garante que o valor salvo no perfil exista na lista de opções.
+ * Sem isso, itens do marketplace com valor inválido eram "equipados"
+ * (gastando LuCoins) sem alterar nada na tela.
+ */
+export function normalizeStyleValue(
+  options: readonly { value: string }[],
+  value?: string | null,
+): string | null {
+  if (value && options.some((o) => o.value === value)) return value;
+  const alias = value ? ALIASES[value] : undefined;
+  if (alias && options.some((o) => o.value === alias)) return alias;
+  return null;
+}
 
 /** Status de atividade — escolha, não texto livre. */
 export const ACTIVITY_STATUS = [

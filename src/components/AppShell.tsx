@@ -17,6 +17,7 @@ import { GodMode } from "@/components/GodMode";
 import { AvatarBubble } from "@/components/AvatarBubble";
 import { LurisHelpBubble } from "@/components/LurisHelpBubble";
 import { MobileModeToggle } from "@/components/MobileModeToggle";
+import { applyProfileTheme, storedTheme } from "@/lib/theme-apply";
 
 type NavItem = { to: string; icon: ComponentType<{ className?: string }>; label: string };
 
@@ -78,6 +79,8 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   // fecha o menu ao navegar
   useEffect(() => { setMenuOpen(false); }, [path]);
+  // Tema Luris: aplica no site inteiro (cores, glows, botões), não só no perfil.
+  useEffect(() => { applyProfileTheme(profile?.profile_theme ?? storedTheme()); }, [profile?.profile_theme]);
 
   async function logout() {
     await supabase.auth.signOut();

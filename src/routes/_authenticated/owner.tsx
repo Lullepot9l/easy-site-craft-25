@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Crown, Shield, Users as UsersIcon, Activity, Terminal, Database, ArrowUp, ArrowDown, Sparkles, Coins, Search, ChevronDown, ChevronRight, Globe, Puzzle, BrainCircuit } from "lucide-react";
+import { Crown, Shield, Users as UsersIcon, Activity, Terminal, Database, ArrowUp, ArrowDown, Sparkles, Coins, Search, ChevronDown, ChevronRight, Globe, Puzzle, BrainCircuit, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth, type AppRole } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,6 +33,7 @@ function OwnerPanel() {
   const [stats, setStats] = useState({ users: 0, posts: 0, images: 0, messages: 0, conversations: 0 });
   const [query, setQuery] = useState("");
   const [coinAmount, setCoinAmount] = useState(1000);
+  const [xpAmount, setXpAmount] = useState(500);
 
   useEffect(() => { if (isOwner) refresh(); }, [isOwner]);
 
@@ -87,6 +88,35 @@ function OwnerPanel() {
       await supabase.from("profiles").update({ coins: Math.max(0, cur + amount) }).eq("id", id);
     }
     toast.success(`${amount > 0 ? "+" : ""}${amount} 🪙 para ${targets.length} contas`);
+    refresh();
+  }
+
+  /** Nível derivado do XP: 1000 XP por nível. */
+  function levelFromXp(xp: number) { return Math.max(1, Math.floor(Math.max(0, xp) / 1000) + 1); }
+
+  async function addXp(userId: string, amount: number) {
+    const cur = users.find(u => u.id === userId)?.xp ?? 0;
+    const xp = Math.max(0, cur + amount);
+    const { error } = await supabase.from("profiles").update({ xp, level: levelFromXp(xp) }).eq("id", userId);
+    if (error) return toast.error(error.message);
+    toast.success(`${amount > 0 ? "+" : ""}${amount} XP · nível ${levelFromXp(xp)}`);
+    refresh();
+  }
+
+  async function setXp(userId: string, value: number) {
+    const xp = Math.max(0, Math.floor(value));
+    const { error } = await supabase.from("profiles").update({ xp, level: levelFromXp(xp) }).eq("id", userId);
+    if (error) return toast.error(error.message);
+    toast.success(`XP definido em ${xp} · nível ${levelFromXp(xp)}`);
+    refresh();
+  }
+
+  async function giveXpEveryone(amount: number) {
+    for (const u of users) {
+      const xp = Math.max(0, (u.xp ?? 0) + amount);
+      await supabase.from("profiles").update({ xp, level: levelFromXp(xp) }).eq("id", u.id);
+    }
+    toast.success(`${amount > 0 ? "+" : ""}${amount} XP para ${users.length} contas`);
     refresh();
   }
 
@@ -207,6 +237,16 @@ function OwnerPanel() {
               use os botões da linha do usuário pra ajustar individual, ou <b>=</b> pra definir exatamente {coinAmount}
             </span>
           </div>
+          <div className="glass rounded-xl p-3 mb-4 flex flex-wrap items-center gap-2 text-xs font-mono">
+            <span className="neon-text flex items-center gap-1"><Zap className="h-3 w-3" /> Banco de XP</span>
+            <input type="number" value={xpAmount} onChange={(e)=>setXpAmount(Number(e.target.value))}
+              className="glass px-2 py-1 rounded w-28" placeholder="xp" />
+            <button onClick={()=>giveXpEveryone(xpAmount)} className="glass px-2.5 py-1 rounded hover-lift">dar a todos</button>
+            <button onClick={()=>giveXpEveryone(-xpAmount)} className="glass px-2.5 py-1 rounded hover-lift">tirar de todos</button>
+            <span className="text-muted-foreground">
+              o nível é recalculado automático (1000 XP = 1 nível)
+            </span>
+          </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="text-xs uppercase font-mono text-muted-foreground border-b border-border">
@@ -214,7 +254,7 @@ function OwnerPanel() {
                   <th className="text-left py-2">Usuário</th>
                   <th className="text-left">Username</th>
                   <th>Role</th>
-                  <th>XP</th>
+                  <th>XP / Nível</th>
                   <th>Coins</th>
                   <th>Ações</th>
                 </tr>
@@ -237,7 +277,7 @@ function OwnerPanel() {
                           {r === "owner" && <option value="owner">owner</option>}
                         </select>
                       </td>
-                      <td className="text-center font-mono">{u.xp}</td>
+                      <td className="text-center font-mono">{u.xp} <span className="text-[10px] text-muted-foreground">· nv {u.level}</span></td>
                       <td className="text-center font-mono text-[oklch(0.78_0.25_60)]">{u.coins}</td>
                       <td className="text-center">
                         <div className="flex gap-1 justify-center">
@@ -245,6 +285,10 @@ function OwnerPanel() {
                           <button onClick={()=>addCoins(u.id, -100)} title="-100 coins" className="glass p-1.5 rounded hover-lift"><ArrowDown className="h-3 w-3 text-[oklch(0.7_0.25_25)]" /></button>
                           <button onClick={()=>addCoins(u.id, 1000)} title="+1000" className="glass p-1.5 rounded hover-lift"><Coins className="h-3 w-3 text-[oklch(0.78_0.25_60)]" /></button>
                           <button onClick={()=>setCoins(u.id, coinAmount)} title={`definir saldo = ${coinAmount}`} className="glass px-2 py-1 rounded hover-lift text-[10px] font-mono">=</button>
+                          <span className="w-px self-stretch bg-[oklch(0.4_0.1_295/0.5)] mx-1" />
+                          <button onClick={()=>addXp(u.id, xpAmount)} title={`+${xpAmount} XP`} className="glass px-2 py-1 rounded hover-lift text-[10px] font-mono flex items-center gap-1"><Zap className="h-3 w-3 text-[oklch(0.8_0.2_295)]" />+</button>
+                          <button onClick={()=>addXp(u.id, -xpAmount)} title={`-${xpAmount} XP`} className="glass px-2 py-1 rounded hover-lift text-[10px] font-mono">xp−</button>
+                          <button onClick={()=>setXp(u.id, xpAmount)} title={`definir XP = ${xpAmount}`} className="glass px-2 py-1 rounded hover-lift text-[10px] font-mono">xp=</button>
                         </div>
                       </td>
                     </tr>
